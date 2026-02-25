@@ -3,24 +3,55 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { DashboardLayout } from "@/components/DashboardLayout";
 import Index from "./pages/Index";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Attendance from "./pages/Attendance";
+import MyMonthlyAttendance from "./pages/MyMonthlyAttendance";
+import TeamAttendance from "./pages/TeamAttendance";
+import TeamMemberAttendance from "./pages/TeamMemberAttendance";
+import UsersPage from "./pages/Users";
+import WFHApply from "./pages/WFHApply";
+import LeaveApply from "./pages/LeaveApply";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+
+            {/* Protected routes with dashboard layout */}
+            <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/attendance" element={<Attendance />} />
+              <Route path="/attendance/my-monthly" element={<MyMonthlyAttendance />} />
+              <Route path="/attendance/team" element={<TeamAttendance />} />
+              <Route path="/attendance/team/:employeeId" element={<TeamMemberAttendance />} />
+              <Route path="/users" element={
+                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR']}>
+                  <UsersPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/wfh/apply" element={<WFHApply />} />
+              <Route path="/leave/apply" element={<LeaveApply />} />
+            </Route>
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

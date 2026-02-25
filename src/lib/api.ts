@@ -1,0 +1,189 @@
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+let accessToken: string | null = localStorage.getItem('nexhr_access_token');
+let refreshToken: string | null = localStorage.getItem('nexhr_refresh_token');
+
+export function setTokens(access: string, refresh: string) {
+  accessToken = access;
+  refreshToken = refresh;
+  localStorage.setItem('nexhr_access_token', access);
+  localStorage.setItem('nexhr_refresh_token', refresh);
+}
+
+export function clearTokens() {
+  accessToken = null;
+  refreshToken = null;
+  localStorage.removeItem('nexhr_access_token');
+  localStorage.removeItem('nexhr_refresh_token');
+}
+
+export function getAccessToken() { return accessToken; }
+export function getRefreshToken() { return refreshToken; }
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp?: string;
+}
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'SUPER_ADMIN' | 'HR' | 'EMPLOYEE';
+  managerId: number | null;
+}
+
+export interface PunchResponse {
+  status: 'ACCEPTED' | 'REJECTED';
+  message: string;
+  distanceMeters: number;
+  radiusMeters: number;
+}
+
+export interface MonthlyAttendance {
+  year: number;
+  month: number;
+  presentDays: number;
+  completedDays: number;
+  totalWorkedMinutes: number;
+  avgHoursPerCompletedDay: number;
+  avgHoursPerCalendarDay: number;
+  days: Array<{
+    date: string;
+    punchInTime: string;
+    punchOutTime: string | null;
+    totalWorkedMinutes: number;
+  }>;
+}
+
+export interface TeamMemberSummary {
+  userId: number;
+  name: string;
+  email: string;
+  presentDays: number;
+  completedDays: number;
+  totalWorkedMinutes: number;
+  avgHoursPerCompletedDay: number;
+}
+
+export interface WfhResponse {
+  id: number;
+  date: string;
+  status: 'APPLIED' | 'APPROVED' | 'REJECTED';
+  reason: string;
+  approvalRequired: boolean;
+}
+
+export interface LeaveResponse {
+  id: number;
+  date: string;
+  status: 'APPLIED' | 'APPROVED' | 'REJECTED';
+  reason: string;
+  salaryDeductionApplicable: boolean;
+}
+
+async function refreshAccessToken(): Promise<boolean> {
+  if (!refreshToken) return false;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+    const json: ApiResponse<{ accessToken: string; refreshToken: string }> = await res.json();
+    if (json.success && json.data) {
+      setTokens(json.data.accessToken, json.data.refreshToken);
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export async function apiRequest<T = any>(
+  endpoint: string,
+  options: RequestInit = {},
+  retry = true
+): Promise<ApiResponse<T>> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> || {}),
+  };
+
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+
+  const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+
+  if (res.status === 401 && retry) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      return apiRequest<T>(endpoint, options, false);
+    }
+    clearTokens();
+    window.location.href = '/login';
+    throw new Error('Session expired');
+  }
+
+  const json = await res.json();
+  if (!json.success) {
+    throw new Error(json.message || 'Request failed');
+  }
+  return json;
+}
+
+export const authApi = {
+  sendOtp: (email: string) =>
+    apiRequest('/api/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) }, false),
+  verifyOtp: (email: string, otp: string) =>
+    apiRequest<{ accessToken: string; refreshToken: string; tokenType: string }>(
+      '/api/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) }, false
+    ),
+};
+
+export const usersApi = {
+  create: (data: { name: string; email: string; role: string }) =>
+    apiRequest<number>('/api/users', { method: 'POST', body: JSON.stringify(data) }),
+  list: () => apiRequest<User[]>('/api/users'),
+  assignManager: (userId: number, managerId: number) =>
+    apiRequest(`/api/users/${userId}/manager`, { method: 'PATCH', body: JSON.stringify({ managerId }) }),
+};
+
+export const attendanceApi = {
+  punchIn: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
+    apiRequest<PunchResponse>('/api/attendance/punch-in', { method: 'POST', body: JSON.stringify(data) }),
+  punchOut: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
+    apiRequest<PunchResponse>('/api/attendance/punch-out', { method: 'POST', body: JSON.stringify(data) }),
+  myMonthly: (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.set('year', String(year));
+    if (month) params.set('month', String(month));
+    return apiRequest<MonthlyAttendance>(`/api/attendance/me/monthly?${params}`);
+  },
+  teamMonthly: (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.set('year', String(year));
+    if (month) params.set('month', String(month));
+    return apiRequest<TeamMemberSummary[]>(`/api/attendance/team/monthly?${params}`);
+  },
+  teamMemberMonthly: (employeeId: number, year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.set('year', String(year));
+    if (month) params.set('month', String(month));
+    return apiRequest<MonthlyAttendance>(`/api/attendance/team/${employeeId}/monthly?${params}`);
+  },
+};
+
+export const wfhApi = {
+  apply: (data: { date: string; reason: string }) =>
+    apiRequest<WfhResponse>('/api/wfh/apply', { method: 'POST', body: JSON.stringify(data) }),
+};
+
+export const leaveApi = {
+  apply: (data: { date: string; reason: string }) =>
+    apiRequest<LeaveResponse>('/api/leave/apply', { method: 'POST', body: JSON.stringify(data) }),
+};
