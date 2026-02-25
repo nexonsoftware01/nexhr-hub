@@ -3,7 +3,6 @@ import { StatCard } from '@/components/StatCard';
 import { StatusChip } from '@/components/StatusChip';
 import { Clock, BarChart3, Home, CalendarOff, Users, UserPlus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -15,10 +14,10 @@ export default function Dashboard() {
       {/* Welcome */}
       <div>
         <h1 className="text-2xl font-bold text-foreground md:text-3xl">
-          Welcome back, {user.name.split(' ')[0]}
+          Welcome back, {user.name.split(' ')[0]} 👋
         </h1>
         <p className="mt-1 text-muted-foreground">
-          Here's your overview for today
+          Here's your overview for today • {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
       </div>
 
@@ -29,28 +28,28 @@ export default function Dashboard() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Punch Status"
-          value="Not Punched"
+          value="Ready"
           subtitle="Tap to punch in"
           icon={Clock}
           iconClassName="bg-accent/10 text-accent"
         />
         <StatCard
           title="This Month"
-          value="—"
+          value="18"
           subtitle="Days present"
           icon={BarChart3}
           iconClassName="bg-info/10 text-info"
         />
         <StatCard
           title="WFH Taken"
-          value="—"
+          value="2"
           subtitle="This month"
           icon={Home}
           iconClassName="bg-success/10 text-success"
         />
         <StatCard
           title="Leaves Taken"
-          value="—"
+          value="1"
           subtitle="This month"
           icon={CalendarOff}
           iconClassName="bg-warning/10 text-warning"

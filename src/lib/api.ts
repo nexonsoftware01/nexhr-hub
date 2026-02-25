@@ -1,5 +1,10 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
+import {
+  USE_MOCK,
+  mockAuthApi, mockUsersApi, mockAttendanceApi, mockWfhApi, mockLeaveApi
+} from './mock-data';
+
 let accessToken: string | null = localStorage.getItem('nexhr_access_token');
 let refreshToken: string | null = localStorage.getItem('nexhr_refresh_token');
 
@@ -136,7 +141,9 @@ export async function apiRequest<T = any>(
   return json;
 }
 
-export const authApi = {
+// --- Exported API objects: mock or real based on USE_MOCK flag ---
+
+export const authApi = USE_MOCK ? mockAuthApi : {
   sendOtp: (email: string) =>
     apiRequest('/api/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) }, false),
   verifyOtp: (email: string, otp: string) =>
@@ -145,7 +152,7 @@ export const authApi = {
     ),
 };
 
-export const usersApi = {
+export const usersApi = USE_MOCK ? mockUsersApi : {
   create: (data: { name: string; email: string; role: string }) =>
     apiRequest<number>('/api/users', { method: 'POST', body: JSON.stringify(data) }),
   list: () => apiRequest<User[]>('/api/users'),
@@ -153,7 +160,7 @@ export const usersApi = {
     apiRequest(`/api/users/${userId}/manager`, { method: 'PATCH', body: JSON.stringify({ managerId }) }),
 };
 
-export const attendanceApi = {
+export const attendanceApi = USE_MOCK ? mockAttendanceApi : {
   punchIn: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
     apiRequest<PunchResponse>('/api/attendance/punch-in', { method: 'POST', body: JSON.stringify(data) }),
   punchOut: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
@@ -178,12 +185,12 @@ export const attendanceApi = {
   },
 };
 
-export const wfhApi = {
+export const wfhApi = USE_MOCK ? mockWfhApi : {
   apply: (data: { date: string; reason: string }) =>
     apiRequest<WfhResponse>('/api/wfh/apply', { method: 'POST', body: JSON.stringify(data) }),
 };
 
-export const leaveApi = {
+export const leaveApi = USE_MOCK ? mockLeaveApi : {
   apply: (data: { date: string; reason: string }) =>
     apiRequest<LeaveResponse>('/api/leave/apply', { method: 'POST', body: JSON.stringify(data) }),
 };
