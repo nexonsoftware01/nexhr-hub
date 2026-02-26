@@ -1,7 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { StatCard } from '@/components/StatCard';
 import { StatusChip } from '@/components/StatusChip';
-import { Clock, BarChart3, Home, CalendarOff, Users, UserPlus } from 'lucide-react';
+import { Clock, BarChart3, Home, CalendarOff, Users, UserPlus, FileSpreadsheet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
@@ -95,6 +95,15 @@ export default function Dashboard() {
               title="Manage Users"
               description="Create and manage employees"
               color="bg-primary/10 text-primary"
+            />
+          )}
+          {user.role === 'SUPER_ADMIN' && (
+            <QuickAction
+              to="/payroll"
+              icon={FileSpreadsheet}
+              title="Payroll"
+              description="Generate monthly payroll Excel"
+              color="bg-accent/10 text-accent"
             />
           )}
           <QuickAction

@@ -47,7 +47,7 @@ export default function LeaveApply() {
         <div className="text-sm text-card-foreground">
           <p className="font-medium">Leave Policy</p>
           <p className="mt-1 text-muted-foreground">
-            1st leave per month is allowed without salary deduction. Additional leaves may affect your salary.
+            1st leave per month is allowed without salary deduction. Additional leaves may affect your salary. Leave can only be applied before 11:30 AM.
           </p>
         </div>
       </div>

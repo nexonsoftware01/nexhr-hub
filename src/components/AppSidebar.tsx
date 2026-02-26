@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronLeft,
   Building2,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 interface AppSidebarProps {
@@ -34,6 +35,7 @@ const navItems: NavItem[] = [
   { title: 'Apply WFH', to: '/wfh/apply', icon: Home },
   { title: 'Apply Leave', to: '/leave/apply', icon: CalendarOff },
   { title: 'Manage Users', to: '/users', icon: UserPlus, roles: ['SUPER_ADMIN', 'HR'] },
+  { title: 'Payroll', to: '/payroll', icon: FileSpreadsheet, roles: ['SUPER_ADMIN'] },
 ];
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
