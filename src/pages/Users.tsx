@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { UserPlus, Users as UsersIcon, Loader2, Search, Link2 } from 'lucide-react';
+import { UserPlus, Users as UsersIcon, Loader2, Search, Link2, IndianRupee, UserX, AlertTriangle } from 'lucide-react';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -66,6 +66,7 @@ export default function UsersPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Manager</TableHead>
+                <TableHead>Salary</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -76,10 +77,23 @@ export default function UsersPage() {
                   <TableCell className="text-muted-foreground text-sm">{user.email}</TableCell>
                   <TableCell><StatusChip status={user.role} /></TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {user.managerId ? `#${user.managerId}` : '—'}
+                    {user.managerId
+                      ? users.find(u => u.id === user.managerId)?.name || `#${user.managerId}`
+                      : '—'}
                   </TableCell>
-                  <TableCell className="text-center">
-                    <AssignManagerDialog userId={user.id} users={users} onAssigned={fetchUsers} />
+                  <TableCell className="text-sm">
+                    {user.monthlySalary != null ? (
+                      <span className="font-medium">₹{user.monthlySalary.toLocaleString('en-IN')}</span>
+                    ) : (
+                      <span className="text-muted-foreground/60 text-xs italic">Not set</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-center gap-1">
+                      <AssignManagerDialog userId={user.id} users={users} onAssigned={fetchUsers} />
+                      <AssignSalaryDialog userId={user.id} currentSalary={user.monthlySalary} onAssigned={fetchUsers} />
+                      <DeactivateButton userId={user.id} userName={user.name} onDeactivated={fetchUsers} />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -103,6 +117,7 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('EMPLOYEE');
+  const [salary, setSalary] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -111,9 +126,13 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
     if (!name.trim() || !email.trim()) return;
     setLoading(true);
     try {
-      await usersApi.create({ name: name.trim(), email: email.trim(), role });
+      const payload: { name: string; email: string; role: string; monthlySalary?: number } = {
+        name: name.trim(), email: email.trim(), role,
+      };
+      if (salary.trim()) payload.monthlySalary = Number(salary);
+      await usersApi.create(payload);
       toast({ title: 'User Created', description: `${name} has been added successfully` });
-      setName(''); setEmail(''); setRole('EMPLOYEE');
+      setName(''); setEmail(''); setRole('EMPLOYEE'); setSalary('');
       setOpen(false);
       onCreated();
     } catch (err: any) {
@@ -153,6 +172,10 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
                 <SelectItem value="HR">HR</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Monthly Salary <span className="text-muted-foreground font-normal">(optional)</span></label>
+            <Input type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="e.g. 45000" min="0" />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
@@ -211,6 +234,99 @@ function AssignManagerDialog({ userId, users, onAssigned }: { userId: number; us
           <Button onClick={handleAssign} className="w-full" disabled={loading || !managerId}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Assign
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AssignSalaryDialog({ userId, currentSalary, onAssigned }: { userId: number; currentSalary: number | null; onAssigned: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [salary, setSalary] = useState(currentSalary ? String(currentSalary) : '');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleAssign = async () => {
+    if (!salary || Number(salary) <= 0) return;
+    setLoading(true);
+    try {
+      await usersApi.assignSalary(userId, Number(salary));
+      toast({ title: 'Salary Updated', description: 'Monthly salary updated successfully' });
+      setOpen(false);
+      onAssigned();
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={o => { setOpen(o); if (o) setSalary(currentSalary ? String(currentSalary) : ''); }}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-1">
+          <IndianRupee className="h-3.5 w-3.5" />
+          Salary
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Assign Salary</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 mt-2">
+          <Input type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="Monthly salary (₹)" min="1" />
+          <Button onClick={handleAssign} className="w-full" disabled={loading || !salary || Number(salary) <= 0}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Update Salary
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DeactivateButton({ userId, userName, onDeactivated }: { userId: number; userName: string; onDeactivated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleDeactivate = async () => {
+    setLoading(true);
+    try {
+      await usersApi.deactivate(userId);
+      toast({ title: 'User Deactivated', description: `${userName} has been deactivated` });
+      setOpen(false);
+      onDeactivated();
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive">
+          <UserX className="h-3.5 w-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            Deactivate User
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Are you sure you want to deactivate <span className="font-medium text-foreground">{userName}</span>? They will no longer be able to log in.
+        </p>
+        <div className="flex gap-2 mt-4">
+          <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="destructive" className="flex-1" onClick={handleDeactivate} disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Deactivate
           </Button>
         </div>
       </DialogContent>

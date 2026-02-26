@@ -38,6 +38,7 @@ export interface User {
   email: string;
   role: 'SUPER_ADMIN' | 'HR' | 'EMPLOYEE';
   managerId: number | null;
+  monthlySalary: number | null;
 }
 
 export interface PunchResponse {
@@ -153,11 +154,15 @@ export const authApi = USE_MOCK ? mockAuthApi : {
 };
 
 export const usersApi = USE_MOCK ? mockUsersApi : {
-  create: (data: { name: string; email: string; role: string }) =>
+  create: (data: { name: string; email: string; role: string; monthlySalary?: number }) =>
     apiRequest<number>('/api/users', { method: 'POST', body: JSON.stringify(data) }),
   list: () => apiRequest<User[]>('/api/users'),
   assignManager: (userId: number, managerId: number) =>
     apiRequest(`/api/users/${userId}/manager`, { method: 'PATCH', body: JSON.stringify({ managerId }) }),
+  assignSalary: (userId: number, monthlySalary: number) =>
+    apiRequest(`/api/users/${userId}/salary`, { method: 'PATCH', body: JSON.stringify({ monthlySalary }) }),
+  deactivate: (userId: number) =>
+    apiRequest(`/api/users/${userId}`, { method: 'DELETE' }),
 };
 
 export const attendanceApi = USE_MOCK ? mockAttendanceApi : {
@@ -193,4 +198,34 @@ export const wfhApi = USE_MOCK ? mockWfhApi : {
 export const leaveApi = USE_MOCK ? mockLeaveApi : {
   apply: (data: { date: string; reason: string }) =>
     apiRequest<LeaveResponse>('/api/leave/apply', { method: 'POST', body: JSON.stringify(data) }),
+};
+
+export const payrollApi = USE_MOCK ? {
+  download: async (year: number, month: number) => {
+    const { delay: mockDelay } = await import('./mock-data');
+    await mockDelay(1500);
+    // Create a fake Excel blob for mock mode
+    const blob = new Blob(['Mock payroll data'], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nexhr-payroll-${year}-${String(month).padStart(2, '0')}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+} : {
+  download: async (year: number, month: number) => {
+    const headers: Record<string, string> = {};
+    const token = getAccessToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API_BASE_URL}/api/payroll/generate?year=${year}&month=${month}`, { headers });
+    if (!res.ok) throw new Error('Failed to download payroll');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nexhr-payroll-${year}-${String(month).padStart(2, '0')}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };

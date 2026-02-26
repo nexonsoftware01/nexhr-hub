@@ -47,7 +47,7 @@ export default function WFHApply() {
         <div className="text-sm text-card-foreground">
           <p className="font-medium">WFH Policy</p>
           <p className="mt-1 text-muted-foreground">
-            1st WFH per month is auto-approved. Additional WFH requests require manager approval.
+            1st WFH per month is auto-approved. Additional WFH requests require manager approval. WFH can only be applied before 11:30 AM.
           </p>
         </div>
       </div>

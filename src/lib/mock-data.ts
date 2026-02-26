@@ -3,10 +3,9 @@ import {
   TeamMemberSummary, WfhResponse, LeaveResponse
 } from './api';
 
-// --- Mock mode: set to true to bypass real backend ---
 export const USE_MOCK = true;
 
-function delay(ms = 600): Promise<void> {
+export function delay(ms = 600): Promise<void> {
   return new Promise(r => setTimeout(r, ms));
 }
 
@@ -23,12 +22,12 @@ function fakeJwt(payload: Record<string, any>): string {
 
 // --- Mock users store ---
 let mockUsers: User[] = [
-  { id: 1, name: 'Rajesh Sharma', email: 'director@nexon.com', role: 'SUPER_ADMIN', managerId: null },
-  { id: 2, name: 'Priya Patel', email: 'priya.hr@nexon.com', role: 'HR', managerId: 1 },
-  { id: 3, name: 'Amit Kumar', email: 'amit.kumar@nexon.com', role: 'EMPLOYEE', managerId: 1 },
-  { id: 4, name: 'Sneha Reddy', email: 'sneha.reddy@nexon.com', role: 'EMPLOYEE', managerId: 1 },
-  { id: 5, name: 'Vikram Singh', email: 'vikram.singh@nexon.com', role: 'EMPLOYEE', managerId: 3 },
-  { id: 6, name: 'Ananya Gupta', email: 'ananya.gupta@nexon.com', role: 'EMPLOYEE', managerId: 3 },
+  { id: 1, name: 'Rajesh Sharma', email: 'director@nexon.com', role: 'SUPER_ADMIN', managerId: null, monthlySalary: null },
+  { id: 2, name: 'Priya Patel', email: 'priya.hr@nexon.com', role: 'HR', managerId: 1, monthlySalary: 60000 },
+  { id: 3, name: 'Amit Kumar', email: 'amit.kumar@nexon.com', role: 'EMPLOYEE', managerId: 1, monthlySalary: 45000 },
+  { id: 4, name: 'Sneha Reddy', email: 'sneha.reddy@nexon.com', role: 'EMPLOYEE', managerId: 1, monthlySalary: 50000 },
+  { id: 5, name: 'Vikram Singh', email: 'vikram.singh@nexon.com', role: 'EMPLOYEE', managerId: 3, monthlySalary: null },
+  { id: 6, name: 'Ananya Gupta', email: 'ananya.gupta@nexon.com', role: 'EMPLOYEE', managerId: 3, monthlySalary: 42000 },
 ];
 
 let nextUserId = 7;
@@ -86,7 +85,7 @@ export const mockAuthApi = {
 };
 
 export const mockUsersApi = {
-  create: async (data: { name: string; email: string; role: string }) => {
+  create: async (data: { name: string; email: string; role: string; monthlySalary?: number }) => {
     await delay(700);
     const newUser: User = {
       id: nextUserId++,
@@ -94,6 +93,7 @@ export const mockUsersApi = {
       email: data.email,
       role: data.role as User['role'],
       managerId: null,
+      monthlySalary: data.monthlySalary ?? null,
     };
     mockUsers.push(newUser);
     return mockOk(newUser.id, 'User created successfully');
@@ -107,6 +107,17 @@ export const mockUsersApi = {
     const user = mockUsers.find(u => u.id === userId);
     if (user) user.managerId = managerId;
     return mockOk(null, 'Reporting manager updated');
+  },
+  assignSalary: async (userId: number, monthlySalary: number) => {
+    await delay(500);
+    const user = mockUsers.find(u => u.id === userId);
+    if (user) user.monthlySalary = monthlySalary;
+    return mockOk(null, 'Salary updated successfully');
+  },
+  deactivate: async (userId: number) => {
+    await delay(600);
+    mockUsers = mockUsers.filter(u => u.id !== userId);
+    return mockOk(null, 'User deactivated successfully');
   },
 };
 

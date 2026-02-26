@@ -16,6 +16,7 @@ import TeamMemberAttendance from "./pages/TeamMemberAttendance";
 import UsersPage from "./pages/Users";
 import WFHApply from "./pages/WFHApply";
 import LeaveApply from "./pages/LeaveApply";
+import Payroll from "./pages/Payroll";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,11 @@ const App = () => (
               } />
               <Route path="/wfh/apply" element={<WFHApply />} />
               <Route path="/leave/apply" element={<LeaveApply />} />
+              <Route path="/payroll" element={
+                <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                  <Payroll />
+                </ProtectedRoute>
+              } />
             </Route>
 
             <Route path="*" element={<NotFound />} />
