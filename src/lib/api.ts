@@ -1,7 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 import {
-  USE_MOCK,
   mockAuthApi, mockUsersApi, mockAttendanceApi, mockWfhApi, mockLeaveApi
 } from './mock-data';
 
