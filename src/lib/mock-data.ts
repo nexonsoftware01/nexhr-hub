@@ -3,7 +3,7 @@ import {
   TeamMemberSummary, WfhResponse, LeaveResponse
 } from './api';
 
-export const USE_MOCK = true;
+export const USE_MOCK = !import.meta.env.VITE_API_BASE_URL;
 
 export function delay(ms = 600): Promise<void> {
   return new Promise(r => setTimeout(r, ms));
