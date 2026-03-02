@@ -1,13 +1,35 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { StatCard } from '@/components/StatCard';
 import { StatusChip } from '@/components/StatusChip';
-import { Clock, BarChart3, Home, CalendarOff, Users, UserPlus, FileSpreadsheet } from 'lucide-react';
+import { Clock, BarChart3, Home, CalendarOff, Users, UserPlus, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { attendanceApi } from '@/lib/api';
 
 export default function Dashboard() {
   const { user } = useAuth();
 
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+
+  const { data: monthlyData, isLoading } = useQuery({
+    queryKey: ['my-monthly-attendance', year, month],
+    queryFn: () => attendanceApi.myMonthly(year, month),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
   if (!user) return null;
+
+  const stats = monthlyData?.data;
+  const presentDays = stats?.presentDays ?? '—';
+  const avgHours = stats?.avgHoursPerCompletedDay
+    ? `${stats.avgHoursPerCompletedDay.toFixed(1)}h`
+    : '—';
+  const totalHours = stats?.totalWorkedMinutes
+    ? `${Math.round(stats.totalWorkedMinutes / 60)}h`
+    : '—';
 
   return (
     <div className="space-y-8 animate-fade-in-up">
@@ -17,7 +39,7 @@ export default function Dashboard() {
           Welcome back, {user.name.split(' ')[0]} 👋
         </h1>
         <p className="mt-1 text-muted-foreground">
-          Here's your overview for today • {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          Here's your overview for today • {now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
       </div>
 
@@ -27,30 +49,30 @@ export default function Dashboard() {
       {/* Quick stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Punch Status"
-          value="Ready"
-          subtitle="Tap to punch in"
-          icon={Clock}
-          iconClassName="bg-accent/10 text-accent"
-        />
-        <StatCard
-          title="This Month"
-          value="18"
-          subtitle="Days present"
+          title="Present Days"
+          value={isLoading ? '…' : String(presentDays)}
+          subtitle="This month"
           icon={BarChart3}
           iconClassName="bg-info/10 text-info"
         />
         <StatCard
-          title="WFH Taken"
-          value="2"
+          title="Avg Hours/Day"
+          value={isLoading ? '…' : avgHours}
+          subtitle="Per completed day"
+          icon={Clock}
+          iconClassName="bg-accent/10 text-accent"
+        />
+        <StatCard
+          title="Total Hours"
+          value={isLoading ? '…' : totalHours}
           subtitle="This month"
           icon={Home}
           iconClassName="bg-success/10 text-success"
         />
         <StatCard
-          title="Leaves Taken"
-          value="1"
-          subtitle="This month"
+          title="Completed Days"
+          value={isLoading ? '…' : String(stats?.completedDays ?? '—')}
+          subtitle="Full day attendance"
           icon={CalendarOff}
           iconClassName="bg-warning/10 text-warning"
         />
