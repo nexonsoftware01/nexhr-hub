@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { usersApi, User } from '@/lib/api';
 import { StatusChip } from '@/components/StatusChip';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
