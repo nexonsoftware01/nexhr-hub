@@ -15,6 +15,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
 
   const fetchUsers = () => {
     setLoading(true);
