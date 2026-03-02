@@ -94,9 +94,13 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-center gap-1">
-                      <AssignManagerDialog userId={user.id} users={users} onAssigned={fetchUsers} />
-                      <AssignSalaryDialog userId={user.id} currentSalary={user.monthlySalary} onAssigned={fetchUsers} />
-                      <DeactivateButton userId={user.id} userName={user.name} onDeactivated={fetchUsers} />
+                      {user.id !== currentUser?.userId && (
+                        <>
+                          <AssignManagerDialog userId={user.id} users={users} onAssigned={fetchUsers} />
+                          <AssignSalaryDialog userId={user.id} currentSalary={user.monthlySalary} onAssigned={fetchUsers} />
+                          <DeactivateButton userId={user.id} userName={user.name} onDeactivated={fetchUsers} />
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
