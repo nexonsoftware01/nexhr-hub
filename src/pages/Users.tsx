@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { usersApi, User } from '@/lib/api';
 import { StatusChip } from '@/components/StatusChip';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,6 +15,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
 
   const fetchUsers = () => {
     setLoading(true);
@@ -25,10 +27,12 @@ export default function UsersPage() {
 
   useEffect(() => { fetchUsers(); }, []);
 
-  const filtered = users.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = users.filter(u => {
+    // HR should not see SUPER_ADMIN users
+    if (currentUser?.role === 'HR' && u.role === 'SUPER_ADMIN') return false;
+    return u.name.toLowerCase().includes(search.toLowerCase()) ||
+      u.email.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <div className="space-y-6 animate-fade-in-up">
