@@ -41,6 +41,18 @@ export interface User {
   monthlySalary: number | null;
 }
 
+// Map snake_case backend response to camelCase frontend User
+function mapUser(raw: any): User {
+  return {
+    id: raw.id,
+    name: raw.name,
+    email: raw.email,
+    role: raw.role,
+    managerId: raw.managerId ?? raw.manager_id ?? null,
+    monthlySalary: raw.monthlySalary ?? raw.monthly_salary ?? null,
+  };
+}
+
 export interface PunchResponse {
   status: 'ACCEPTED' | 'REJECTED';
   message: string;
@@ -156,7 +168,10 @@ export const authApi = USE_MOCK ? mockAuthApi : {
 export const usersApi = USE_MOCK ? mockUsersApi : {
   create: (data: { name: string; email: string; role: string; monthlySalary?: number }) =>
     apiRequest<number>('/api/users', { method: 'POST', body: JSON.stringify(data) }),
-  list: () => apiRequest<User[]>('/api/users'),
+  list: async () => {
+    const res = await apiRequest<any[]>('/api/users');
+    return { ...res, data: (res.data || []).map(mapUser) };
+  },
   assignManager: (userId: number, managerId: number) =>
     apiRequest(`/api/users/${userId}/manager`, { method: 'PATCH', body: JSON.stringify({ managerId }) }),
   assignSalary: (userId: number, monthlySalary: number) =>
