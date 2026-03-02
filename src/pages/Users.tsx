@@ -29,7 +29,7 @@ export default function UsersPage() {
 
   const filtered = users.filter(u => {
     // HR should not see SUPER_ADMIN users
-    if (user?.role === 'HR' && u.role === 'SUPER_ADMIN') return false;
+    if (currentUser?.role === 'HR' && u.role === 'SUPER_ADMIN') return false;
     return u.name.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase());
   });
