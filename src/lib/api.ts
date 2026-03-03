@@ -257,7 +257,13 @@ export const usersApi = USE_MOCK ? {
         ? payload.users
         : Array.isArray(payload?.items)
           ? payload.items
-          : [];
+          : Array.isArray(payload?.content)
+            ? payload.content
+            : Array.isArray(payload?.records)
+              ? payload.records
+              : Array.isArray(payload?.data)
+                ? payload.data
+                : [];
     return { ...res, data: rawUsers.map(mapUser) };
   },
   assignManager: (userId: number, managerId: number) =>
