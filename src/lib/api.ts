@@ -43,8 +43,64 @@ export interface User {
 // Normalize backend values to nullable number
 function toNullableNumber(value: any): number | null {
   if (value === null || value === undefined || value === '') return null;
-  const parsed = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value === 'string') {
+    const cleaned = value.replace(/[^\d.-]/g, '');
+    if (!cleaned || cleaned === '-' || cleaned === '.' || cleaned === '-.') return null;
+    const parsed = Number(cleaned);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  if (typeof value === 'object') {
+    const nested =
+      value.amount ??
+      value.value ??
+      value.monthlySalary ??
+      value.monthly_salary ??
+      value.salary ??
+      null;
+
+    if (nested !== null && nested !== undefined) return toNullableNumber(nested);
+  }
+
+  return null;
+}
+
+function pickSalaryRaw(raw: any): any {
+  const direct =
+    raw.monthlySalary ??
+    raw.monthly_salary ??
+    raw.monthlysalary ??
+    raw.salary ??
+    raw.salary_amount ??
+    raw.monthlySalaryAmount ??
+    raw.monthly_salary_amount ??
+    raw.compensation?.monthlySalary ??
+    raw.compensation?.monthly_salary ??
+    raw.compensation?.amount ??
+    raw.salaryDetails?.monthlySalary ??
+    raw.salary_details?.monthly_salary ??
+    raw.payroll?.monthlySalary ??
+    raw.payroll?.monthly_salary ??
+    raw.pay?.monthlySalary ??
+    raw.pay?.monthly_salary ??
+    raw.employee?.monthlySalary ??
+    raw.employee?.monthly_salary ??
+    raw.salary?.amount ??
+    raw.salary?.value ??
+    null;
+
+  if (direct !== null && direct !== undefined) return direct;
+
+  const salaryKeyEntry = Object.entries(raw).find(([key, val]) =>
+    /monthly.*salary|salary.*monthly|salary/i.test(key) && toNullableNumber(val) !== null
+  );
+
+  return salaryKeyEntry?.[1] ?? null;
 }
 
 // Map backend response shapes to frontend User
@@ -55,18 +111,7 @@ function mapUser(raw: any): User {
     raw.reportingManagerId ??
     raw.reporting_manager_id ??
     raw.manager?.id ??
-    null;
-
-  const salaryRaw =
-    raw.monthlySalary ??
-    raw.monthly_salary ??
-    raw.monthlysalary ??
-    raw.salary ??
-    raw.salary_amount ??
-    raw.monthlySalaryAmount ??
-    raw.monthly_salary_amount ??
-    raw.compensation?.monthlySalary ??
-    raw.compensation?.monthly_salary ??
+    raw.reportingManager?.id ??
     null;
 
   return {
@@ -75,7 +120,7 @@ function mapUser(raw: any): User {
     email: raw.email ?? '',
     role: raw.role,
     managerId: toNullableNumber(managerRaw),
-    monthlySalary: toNullableNumber(salaryRaw),
+    monthlySalary: toNullableNumber(pickSalaryRaw(raw)),
   };
 }
 
