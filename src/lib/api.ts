@@ -1,9 +1,8 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
-import {
-  mockAuthApi, mockUsersApi, mockAttendanceApi, mockWfhApi, mockLeaveApi
-} from './mock-data';
+// Lazy-load mock modules to avoid circular dependency (mock-data imports types from this file)
+const getMocks = () => import('./mock-data');
 
 let accessToken: string | null = localStorage.getItem('nexhr_access_token');
 let refreshToken: string | null = localStorage.getItem('nexhr_refresh_token');
