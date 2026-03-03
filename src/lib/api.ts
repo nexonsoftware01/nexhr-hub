@@ -182,7 +182,10 @@ export async function apiRequest<T = any>(
 
 // --- Exported API objects: mock or real based on USE_MOCK flag ---
 
-export const authApi = USE_MOCK ? mockAuthApi : {
+export const authApi = USE_MOCK ? {
+  sendOtp: async (email: string) => (await getMocks()).mockAuthApi.sendOtp(email),
+  verifyOtp: async (email: string, otp: string) => (await getMocks()).mockAuthApi.verifyOtp(email, otp),
+} : {
   sendOtp: (email: string) =>
     apiRequest('/api/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) }, false),
   verifyOtp: (email: string, otp: string) =>
@@ -191,7 +194,13 @@ export const authApi = USE_MOCK ? mockAuthApi : {
     ),
 };
 
-export const usersApi = USE_MOCK ? mockUsersApi : {
+export const usersApi = USE_MOCK ? {
+  create: async (data: { name: string; email: string; role: string; monthlySalary?: number }) => (await getMocks()).mockUsersApi.create(data),
+  list: async () => (await getMocks()).mockUsersApi.list(),
+  assignManager: async (userId: number, managerId: number) => (await getMocks()).mockUsersApi.assignManager(userId, managerId),
+  assignSalary: async (userId: number, monthlySalary: number) => (await getMocks()).mockUsersApi.assignSalary(userId, monthlySalary),
+  deactivate: async (userId: number) => (await getMocks()).mockUsersApi.deactivate(userId),
+} : {
   create: (data: { name: string; email: string; role: string; monthlySalary?: number }) =>
     apiRequest<number>('/api/users', { method: 'POST', body: JSON.stringify(data) }),
   list: async () => {
@@ -204,7 +213,6 @@ export const usersApi = USE_MOCK ? mockUsersApi : {
         : Array.isArray(payload?.items)
           ? payload.items
           : [];
-
     return { ...res, data: rawUsers.map(mapUser) };
   },
   assignManager: (userId: number, managerId: number) =>
@@ -215,7 +223,13 @@ export const usersApi = USE_MOCK ? mockUsersApi : {
     apiRequest(`/api/users/${userId}`, { method: 'DELETE' }),
 };
 
-export const attendanceApi = USE_MOCK ? mockAttendanceApi : {
+export const attendanceApi = USE_MOCK ? {
+  punchIn: async (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) => (await getMocks()).mockAttendanceApi.punchIn(data),
+  punchOut: async (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) => (await getMocks()).mockAttendanceApi.punchOut(data),
+  myMonthly: async (year?: number, month?: number) => (await getMocks()).mockAttendanceApi.myMonthly(year, month),
+  teamMonthly: async (year?: number, month?: number) => (await getMocks()).mockAttendanceApi.teamMonthly(year, month),
+  teamMemberMonthly: async (employeeId: number, year?: number, month?: number) => (await getMocks()).mockAttendanceApi.teamMemberMonthly(employeeId, year, month),
+} : {
   punchIn: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
     apiRequest<PunchResponse>('/api/attendance/punch-in', { method: 'POST', body: JSON.stringify(data) }),
   punchOut: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
@@ -240,21 +254,24 @@ export const attendanceApi = USE_MOCK ? mockAttendanceApi : {
   },
 };
 
-export const wfhApi = USE_MOCK ? mockWfhApi : {
+export const wfhApi = USE_MOCK ? {
+  apply: async (data: { date: string; reason: string }) => (await getMocks()).mockWfhApi.apply(data),
+} : {
   apply: (data: { date: string; reason: string }) =>
     apiRequest<WfhResponse>('/api/wfh/apply', { method: 'POST', body: JSON.stringify(data) }),
 };
 
-export const leaveApi = USE_MOCK ? mockLeaveApi : {
+export const leaveApi = USE_MOCK ? {
+  apply: async (data: { date: string; reason: string }) => (await getMocks()).mockLeaveApi.apply(data),
+} : {
   apply: (data: { date: string; reason: string }) =>
     apiRequest<LeaveResponse>('/api/leave/apply', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export const payrollApi = USE_MOCK ? {
   download: async (year: number, month: number) => {
-    const { delay: mockDelay } = await import('./mock-data');
+    const { delay: mockDelay } = await getMocks();
     await mockDelay(1500);
-    // Create a fake Excel blob for mock mode
     const blob = new Blob(['Mock payroll data'], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
