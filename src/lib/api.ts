@@ -196,8 +196,17 @@ export const usersApi = USE_MOCK ? mockUsersApi : {
   create: (data: { name: string; email: string; role: string; monthlySalary?: number }) =>
     apiRequest<number>('/api/users', { method: 'POST', body: JSON.stringify(data) }),
   list: async () => {
-    const res = await apiRequest<any[]>('/api/users');
-    return { ...res, data: (res.data || []).map(mapUser) };
+    const res = await apiRequest<any>('/api/users');
+    const payload = res.data;
+    const rawUsers = Array.isArray(payload)
+      ? payload
+      : Array.isArray(payload?.users)
+        ? payload.users
+        : Array.isArray(payload?.items)
+          ? payload.items
+          : [];
+
+    return { ...res, data: rawUsers.map(mapUser) };
   },
   assignManager: (userId: number, managerId: number) =>
     apiRequest(`/api/users/${userId}/manager`, { method: 'PATCH', body: JSON.stringify({ managerId }) }),
