@@ -22,7 +22,7 @@ export default function TeamAttendance() {
     setLoading(true);
     attendanceApi.teamMonthly(year, month)
       .then(res => setData(res.data || []))
-      .catch(err => toast({ title: 'Error', description: err.message, variant: 'destructive' }))
+      .catch(() => setData([]))
       .finally(() => setLoading(false));
   }, [year, month]);
 
