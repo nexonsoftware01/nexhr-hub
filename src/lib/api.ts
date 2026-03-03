@@ -41,15 +41,42 @@ export interface User {
   monthlySalary: number | null;
 }
 
-// Map snake_case backend response to camelCase frontend User
+// Normalize backend values to nullable number
+function toNullableNumber(value: any): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+// Map backend response shapes to frontend User
 function mapUser(raw: any): User {
+  const managerRaw =
+    raw.managerId ??
+    raw.manager_id ??
+    raw.reportingManagerId ??
+    raw.reporting_manager_id ??
+    raw.manager?.id ??
+    null;
+
+  const salaryRaw =
+    raw.monthlySalary ??
+    raw.monthly_salary ??
+    raw.monthlysalary ??
+    raw.salary ??
+    raw.salary_amount ??
+    raw.monthlySalaryAmount ??
+    raw.monthly_salary_amount ??
+    raw.compensation?.monthlySalary ??
+    raw.compensation?.monthly_salary ??
+    null;
+
   return {
-    id: raw.id,
-    name: raw.name,
-    email: raw.email,
+    id: toNullableNumber(raw.id) ?? 0,
+    name: raw.name ?? '',
+    email: raw.email ?? '',
     role: raw.role,
-    managerId: raw.managerId ?? raw.manager_id ?? null,
-    monthlySalary: raw.monthlySalary ?? raw.monthly_salary ?? null,
+    managerId: toNullableNumber(managerRaw),
+    monthlySalary: toNullableNumber(salaryRaw),
   };
 }
 
@@ -169,8 +196,17 @@ export const usersApi = USE_MOCK ? mockUsersApi : {
   create: (data: { name: string; email: string; role: string; monthlySalary?: number }) =>
     apiRequest<number>('/api/users', { method: 'POST', body: JSON.stringify(data) }),
   list: async () => {
-    const res = await apiRequest<any[]>('/api/users');
-    return { ...res, data: (res.data || []).map(mapUser) };
+    const res = await apiRequest<any>('/api/users');
+    const payload = res.data;
+    const rawUsers = Array.isArray(payload)
+      ? payload
+      : Array.isArray(payload?.users)
+        ? payload.users
+        : Array.isArray(payload?.items)
+          ? payload.items
+          : [];
+
+    return { ...res, data: rawUsers.map(mapUser) };
   },
   assignManager: (userId: number, managerId: number) =>
     apiRequest(`/api/users/${userId}/manager`, { method: 'PATCH', body: JSON.stringify({ managerId }) }),
