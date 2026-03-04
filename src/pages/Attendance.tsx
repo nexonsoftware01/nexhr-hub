@@ -161,7 +161,15 @@ export default function Attendance() {
         <p>• Ensure location services are enabled for accurate tracking</p>
         <p>• You must be within the office geofence radius to punch successfully</p>
         <p>• Punch in first, then punch out when you leave</p>
+        <p>• Punching is only allowed from your primary registered device</p>
       </div>
+
+      {import.meta.env.DEV && (
+        <div className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground flex items-center gap-2">
+          <Smartphone className="h-3.5 w-3.5 shrink-0" />
+          <span className="font-mono break-all">Device ID: {getDeviceId()}</span>
+        </div>
+      )}
     </div>
   );
 }
