@@ -30,7 +30,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { title: 'Punch In/Out', to: '/attendance', icon: Clock },
+  { title: 'Punch In/Out', to: '/attendance', icon: Clock, end: true },
   { title: 'My Reports', to: '/attendance/my-monthly', icon: BarChart3 },
   { title: 'Team Reports', to: '/attendance/team', icon: Users },
   { title: 'Apply WFH', to: '/wfh/apply', icon: Home },
