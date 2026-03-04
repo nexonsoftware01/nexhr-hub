@@ -287,9 +287,17 @@ export const attendanceApi = USE_MOCK ? {
   teamMemberMonthly: async (employeeId: number, year?: number, month?: number) => (await getMocks()).mockAttendanceApi.teamMemberMonthly(employeeId, year, month),
 } : {
   punchIn: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
-    apiRequest<PunchResponse>('/api/attendance/punch-in', { method: 'POST', body: JSON.stringify(data) }),
+    apiRequest<PunchResponse>('/api/attendance/punch-in', {
+      method: 'POST',
+      headers: { 'X-Device-Id': getDeviceId() },
+      body: JSON.stringify(data),
+    }),
   punchOut: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
-    apiRequest<PunchResponse>('/api/attendance/punch-out', { method: 'POST', body: JSON.stringify(data) }),
+    apiRequest<PunchResponse>('/api/attendance/punch-out', {
+      method: 'POST',
+      headers: { 'X-Device-Id': getDeviceId() },
+      body: JSON.stringify(data),
+    }),
   myMonthly: (year?: number, month?: number) => {
     const params = new URLSearchParams();
     if (year) params.set('year', String(year));
