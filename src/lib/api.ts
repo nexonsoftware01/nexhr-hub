@@ -237,7 +237,10 @@ export const authApi = USE_MOCK ? {
     apiRequest('/api/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) }, false),
   verifyOtp: (email: string, otp: string) =>
     apiRequest<{ accessToken: string; refreshToken: string; tokenType: string }>(
-      '/api/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) }, false
+      '/api/auth/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email, otp, deviceId: getDeviceId(), deviceName: getDeviceName() }),
+      }, false
     ),
 };
 
