@@ -1,3 +1,5 @@
+import { getDeviceId, getDeviceName } from './device';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
@@ -127,8 +129,8 @@ function mapUser(raw: any): User {
 export interface PunchResponse {
   status: 'ACCEPTED' | 'REJECTED';
   message: string;
-  distanceMeters: number;
-  radiusMeters: number;
+  distanceMeters: number | null;
+  radiusMeters: number | null;
 }
 
 export interface MonthlyAttendance {
@@ -235,7 +237,10 @@ export const authApi = USE_MOCK ? {
     apiRequest('/api/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) }, false),
   verifyOtp: (email: string, otp: string) =>
     apiRequest<{ accessToken: string; refreshToken: string; tokenType: string }>(
-      '/api/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) }, false
+      '/api/auth/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email, otp, deviceId: getDeviceId(), deviceName: getDeviceName() }),
+      }, false
     ),
 };
 
@@ -282,9 +287,17 @@ export const attendanceApi = USE_MOCK ? {
   teamMemberMonthly: async (employeeId: number, year?: number, month?: number) => (await getMocks()).mockAttendanceApi.teamMemberMonthly(employeeId, year, month),
 } : {
   punchIn: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
-    apiRequest<PunchResponse>('/api/attendance/punch-in', { method: 'POST', body: JSON.stringify(data) }),
+    apiRequest<PunchResponse>('/api/attendance/punch-in', {
+      method: 'POST',
+      headers: { 'X-Device-Id': getDeviceId() },
+      body: JSON.stringify(data),
+    }),
   punchOut: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
-    apiRequest<PunchResponse>('/api/attendance/punch-out', { method: 'POST', body: JSON.stringify(data) }),
+    apiRequest<PunchResponse>('/api/attendance/punch-out', {
+      method: 'POST',
+      headers: { 'X-Device-Id': getDeviceId() },
+      body: JSON.stringify(data),
+    }),
   myMonthly: (year?: number, month?: number) => {
     const params = new URLSearchParams();
     if (year) params.set('year', String(year));

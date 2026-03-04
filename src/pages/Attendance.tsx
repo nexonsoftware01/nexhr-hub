@@ -2,8 +2,9 @@ import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/StatusChip';
 import { attendanceApi, PunchResponse } from '@/lib/api';
+import { getDeviceId } from '@/lib/device';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, Loader2, CheckCircle2, XCircle, Navigation } from 'lucide-react';
+import { MapPin, Clock, Loader2, CheckCircle2, XCircle, Navigation, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Attendance() {
@@ -139,11 +140,15 @@ export default function Attendance() {
                 </div>
                 <p className="text-sm text-card-foreground">{result.message}</p>
                 <div className="flex gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {result.distanceMeters.toFixed(0)}m away
-                  </span>
-                  <span>Allowed radius: {result.radiusMeters}m</span>
+                  {result.distanceMeters != null && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {result.distanceMeters.toFixed(0)}m away
+                    </span>
+                  )}
+                  {result.radiusMeters != null && (
+                    <span>Allowed radius: {result.radiusMeters}m</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -156,7 +161,15 @@ export default function Attendance() {
         <p>• Ensure location services are enabled for accurate tracking</p>
         <p>• You must be within the office geofence radius to punch successfully</p>
         <p>• Punch in first, then punch out when you leave</p>
+        <p>• Punching is only allowed from your primary registered device</p>
       </div>
+
+      {import.meta.env.DEV && (
+        <div className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground flex items-center gap-2">
+          <Smartphone className="h-3.5 w-3.5 shrink-0" />
+          <span className="font-mono break-all">Device ID: {getDeviceId()}</span>
+        </div>
+      )}
     </div>
   );
 }
