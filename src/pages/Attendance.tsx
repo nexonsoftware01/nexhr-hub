@@ -2,8 +2,9 @@ import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/StatusChip';
 import { attendanceApi, PunchResponse } from '@/lib/api';
+import { getDeviceId } from '@/lib/device';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, Loader2, CheckCircle2, XCircle, Navigation } from 'lucide-react';
+import { MapPin, Clock, Loader2, CheckCircle2, XCircle, Navigation, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Attendance() {
