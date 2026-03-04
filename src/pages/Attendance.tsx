@@ -140,11 +140,15 @@ export default function Attendance() {
                 </div>
                 <p className="text-sm text-card-foreground">{result.message}</p>
                 <div className="flex gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {result.distanceMeters.toFixed(0)}m away
-                  </span>
-                  <span>Allowed radius: {result.radiusMeters}m</span>
+                  {result.distanceMeters != null && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {result.distanceMeters.toFixed(0)}m away
+                    </span>
+                  )}
+                  {result.radiusMeters != null && (
+                    <span>Allowed radius: {result.radiusMeters}m</span>
+                  )}
                 </div>
               </div>
             </div>
