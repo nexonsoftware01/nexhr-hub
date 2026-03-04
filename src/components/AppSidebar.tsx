@@ -25,11 +25,12 @@ interface NavItem {
   to: string;
   icon: React.ElementType;
   roles?: string[];
+  end?: boolean;
 }
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { title: 'Punch In/Out', to: '/attendance', icon: Clock },
+  { title: 'Punch In/Out', to: '/attendance', icon: Clock, end: true },
   { title: 'My Reports', to: '/attendance/my-monthly', icon: BarChart3 },
   { title: 'Team Reports', to: '/attendance/team', icon: Users },
   { title: 'Apply WFH', to: '/wfh/apply', icon: Home },
@@ -69,6 +70,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           <NavLink
             key={item.to}
             to={item.to}
+            end={item.end}
             className={({ isActive }) => cn(
               'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
               isActive
