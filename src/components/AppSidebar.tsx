@@ -25,6 +25,7 @@ interface NavItem {
   to: string;
   icon: React.ElementType;
   roles?: string[];
+  end?: boolean;
 }
 
 const navItems: NavItem[] = [
