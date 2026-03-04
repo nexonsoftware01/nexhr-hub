@@ -129,8 +129,8 @@ function mapUser(raw: any): User {
 export interface PunchResponse {
   status: 'ACCEPTED' | 'REJECTED';
   message: string;
-  distanceMeters: number;
-  radiusMeters: number;
+  distanceMeters: number | null;
+  radiusMeters: number | null;
 }
 
 export interface MonthlyAttendance {
