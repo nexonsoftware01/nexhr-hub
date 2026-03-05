@@ -110,7 +110,7 @@ export default function Dashboard() {
             description="View your monthly attendance"
             color="bg-info/10 text-info"
           />
-          {(user.role === 'SUPER_ADMIN' || user.role === 'HR') && (
+          {(user.role === 'DIRECTOR' || user.role === 'HR') && (
             <QuickAction
               to="/users"
               icon={UserPlus}
