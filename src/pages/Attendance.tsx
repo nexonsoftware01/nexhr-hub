@@ -66,11 +66,7 @@ export default function Attendance() {
           : 'Location request timed out.';
         toast({ title: 'Location Error', description: msg, variant: 'destructive' });
       } else {
-        // API error — use structured handler
-        const apiErr = handleApiError(err, {
-          title: apiError => apiError.isDeviceError ? 'Device Mismatch' : 'Punch Failed',
-          silent: false,
-        });
+        handleApiError(err, { title: 'Punch Failed' });
       }
     } finally {
       setLoading(false);
