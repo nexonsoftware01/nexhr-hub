@@ -29,8 +29,8 @@ export default function UsersPage() {
   useEffect(() => { fetchUsers(); }, []);
 
   const filtered = users.filter(u => {
-    // HR should not see SUPER_ADMIN users
-    if (currentUser?.role === 'HR' && u.role === 'SUPER_ADMIN') return false;
+    // HR should not see DIRECTOR users
+    if (currentUser?.role === 'HR' && u.role === 'DIRECTOR') return false;
     return u.name.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase());
   });

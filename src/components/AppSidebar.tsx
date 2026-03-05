@@ -35,8 +35,8 @@ const navItems: NavItem[] = [
   { title: 'Team Reports', to: '/attendance/team', icon: Users },
   { title: 'Apply WFH', to: '/wfh/apply', icon: Home },
   { title: 'Apply Leave', to: '/leave/apply', icon: CalendarOff },
-  { title: 'Manage Users', to: '/users', icon: UserPlus, roles: ['SUPER_ADMIN', 'HR'] },
-  { title: 'Payroll', to: '/payroll', icon: FileSpreadsheet, roles: ['SUPER_ADMIN'] },
+  { title: 'Manage Users', to: '/users', icon: UserPlus, roles: ['DIRECTOR', 'HR'] },
+  { title: 'Payroll', to: '/payroll', icon: FileSpreadsheet, roles: ['DIRECTOR'] },
 ];
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {

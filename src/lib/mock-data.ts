@@ -22,7 +22,7 @@ function fakeJwt(payload: Record<string, any>): string {
 
 // --- Mock users store ---
 let mockUsers: User[] = [
-  { id: 1, name: 'Rajesh Sharma', email: 'director@nexon.com', role: 'SUPER_ADMIN', managerId: null, monthlySalary: null },
+  { id: 1, name: 'Rajesh Sharma', email: 'director@nexon.com', role: 'DIRECTOR', managerId: null, monthlySalary: null },
   { id: 2, name: 'Priya Patel', email: 'priya.hr@nexon.com', role: 'HR', managerId: 1, monthlySalary: 60000 },
   { id: 3, name: 'Amit Kumar', email: 'amit.kumar@nexon.com', role: 'EMPLOYEE', managerId: 1, monthlySalary: 45000 },
   { id: 4, name: 'Sneha Reddy', email: 'sneha.reddy@nexon.com', role: 'EMPLOYEE', managerId: 1, monthlySalary: 50000 },

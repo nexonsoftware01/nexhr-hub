@@ -110,7 +110,7 @@ export default function Dashboard() {
             description="View your monthly attendance"
             color="bg-info/10 text-info"
           />
-          {(user.role === 'SUPER_ADMIN' || user.role === 'HR') && (
+          {(user.role === 'DIRECTOR' || user.role === 'HR') && (
             <QuickAction
               to="/users"
               icon={UserPlus}
@@ -119,7 +119,7 @@ export default function Dashboard() {
               color="bg-primary/10 text-primary"
             />
           )}
-          {user.role === 'SUPER_ADMIN' && (
+          {user.role === 'DIRECTOR' && (
             <QuickAction
               to="/payroll"
               icon={FileSpreadsheet}

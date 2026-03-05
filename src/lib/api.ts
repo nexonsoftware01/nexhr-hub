@@ -38,7 +38,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'SUPER_ADMIN' | 'HR' | 'EMPLOYEE';
+  role: 'DIRECTOR' | 'HR' | 'EMPLOYEE';
   managerId: number | null;
   monthlySalary: number | null;
 }
