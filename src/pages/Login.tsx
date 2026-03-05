@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, ArrowRight, Building2, ShieldCheck, Loader2 } from 'lucide-react';
@@ -8,15 +8,24 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { useAuth } from '@/contexts/AuthContext';
 import { authApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 export default function Login() {
   const [step, setStep] = useState<'email' | 'otp'>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Cooldown timer for resend
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown(c => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +36,10 @@ export default function Login() {
       toast({ title: 'OTP Sent', description: `Verification code sent to ${email}` });
       setStep('otp');
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message || 'Failed to send OTP', variant: 'destructive' });
+      const apiErr = handleApiError(err, { title: 'Login Failed' });
+      if (apiErr.isRateLimited && apiErr.cooldownSeconds) {
+        setResendCooldown(apiErr.cooldownSeconds);
+      }
     } finally {
       setLoading(false);
     }
@@ -43,20 +55,26 @@ export default function Login() {
       toast({ title: 'Welcome!', description: 'Logged in successfully' });
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
-      toast({ title: 'Verification Failed', description: err.message || 'Invalid OTP', variant: 'destructive' });
+      handleApiError(err, { title: 'Verification Failed' });
+      setOtp('');
     } finally {
       setLoading(false);
     }
   };
 
   const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
     setLoading(true);
     try {
       await authApi.sendOtp(email.trim());
       toast({ title: 'OTP Resent', description: 'New code sent to your email' });
       setOtp('');
+      setResendCooldown(30); // Default cooldown after successful resend
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      const apiErr = handleApiError(err, { title: 'Resend Failed' });
+      if (apiErr.isRateLimited && apiErr.cooldownSeconds) {
+        setResendCooldown(apiErr.cooldownSeconds);
+      }
     } finally {
       setLoading(false);
     }
@@ -199,10 +217,10 @@ export default function Login() {
                     <button
                       type="button"
                       onClick={handleResendOtp}
-                      disabled={loading}
+                      disabled={loading || resendCooldown > 0}
                       className="text-accent font-medium hover:text-accent/80 transition-colors disabled:opacity-50"
                     >
-                      Resend code
+                      {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
                     </button>
                   </div>
                 </form>

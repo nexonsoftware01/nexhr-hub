@@ -29,7 +29,7 @@ export default function WFHApply() {
       setResult(res.data);
       toast({ title: 'WFH Request Submitted', description: res.message });
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'WFH Request Failed' });
     } finally {
       setLoading(false);
     }

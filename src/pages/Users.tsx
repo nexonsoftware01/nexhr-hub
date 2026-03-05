@@ -308,7 +308,7 @@ function DeactivateButton({ userId, userName, onDeactivated }: { userId: number;
       setOpen(false);
       onDeactivated();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'Deactivation Failed' });
     } finally {
       setLoading(false);
     }

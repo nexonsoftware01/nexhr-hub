@@ -19,7 +19,7 @@ export default function Payroll() {
       await payrollApi.download(Number(year), Number(month));
       toast({ title: 'Payroll Downloaded', description: `Payroll for ${monthNames[Number(month) - 1]} ${year} has been downloaded.` });
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'Payroll Download Failed' });
     } finally {
       setLoading(false);
     }

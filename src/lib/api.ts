@@ -367,7 +367,14 @@ export const payrollApi = USE_MOCK ? {
     const token = getAccessToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
     const res = await fetch(`${API_BASE_URL}/api/payroll/generate?year=${year}&month=${month}`, { headers });
-    if (!res.ok) throw new Error('Failed to download payroll');
+    if (!res.ok) {
+      let message = 'Failed to download payroll';
+      try {
+        const json = await res.json();
+        if (json?.message) message = json.message;
+      } catch {}
+      throw new ApiError(message, res.status);
+    }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

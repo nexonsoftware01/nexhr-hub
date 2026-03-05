@@ -4,6 +4,7 @@ import { StatusChip } from '@/components/StatusChip';
 import { attendanceApi, PunchResponse } from '@/lib/api';
 import { getDeviceId } from '@/lib/device';
 import { useToast } from '@/hooks/use-toast';
+import { handleApiError } from '@/lib/api-error';
 import { MapPin, Clock, Loader2, CheckCircle2, XCircle, Navigation, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -57,11 +58,20 @@ export default function Attendance() {
       }
     } catch (err: any) {
       setLocationLoading(false);
-      const msg = err.code === 1 ? 'Location permission denied. Please enable it.'
-        : err.code === 2 ? 'Location unavailable. Try again.'
-        : err.code === 3 ? 'Location request timed out.'
-        : err.message || 'Failed to process punch';
-      toast({ title: 'Error', description: msg, variant: 'destructive' });
+
+      // Handle geolocation errors separately (not API errors)
+      if (err?.code === 1 || err?.code === 2 || err?.code === 3) {
+        const msg = err.code === 1 ? 'Location permission denied. Please enable it.'
+          : err.code === 2 ? 'Location unavailable. Try again.'
+          : 'Location request timed out.';
+        toast({ title: 'Location Error', description: msg, variant: 'destructive' });
+      } else {
+        // API error — use structured handler
+        const apiErr = handleApiError(err, {
+          title: apiError => apiError.isDeviceError ? 'Device Mismatch' : 'Punch Failed',
+          silent: false,
+        });
+      }
     } finally {
       setLoading(false);
     }
