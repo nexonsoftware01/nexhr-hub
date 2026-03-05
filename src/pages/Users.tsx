@@ -22,7 +22,7 @@ export default function UsersPage() {
     setLoading(true);
     usersApi.list()
       .then(res => setUsers(res.data || []))
-      .catch(err => toast({ title: 'Error', description: err.message, variant: 'destructive' }))
+      .catch(err => handleApiError(err, { title: 'Failed to Load Users' }))
       .finally(() => setLoading(false));
   };
 
