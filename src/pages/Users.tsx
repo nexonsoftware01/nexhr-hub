@@ -265,7 +265,7 @@ function AssignSalaryDialog({ userId, currentSalary, onAssigned }: { userId: num
       setOpen(false);
       onAssigned();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'Update Salary Failed' });
     } finally {
       setLoading(false);
     }
