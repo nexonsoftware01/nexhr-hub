@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { payrollApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { handleApiError } from '@/lib/api-error';
 import { Download, FileSpreadsheet, Loader2, Info } from 'lucide-react';
 
 export default function Payroll() {
