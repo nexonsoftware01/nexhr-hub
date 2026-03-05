@@ -209,7 +209,12 @@ export async function apiRequest<T = any>(
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
 
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+  } catch (fetchErr) {
+    throw new ApiError('Network error. Please try again.', 0);
+  }
 
   if (res.status === 401 && retry) {
     const refreshed = await refreshAccessToken();
@@ -218,13 +223,24 @@ export async function apiRequest<T = any>(
     }
     clearTokens();
     window.location.href = '/login';
-    throw new Error('Session expired');
+    throw new ApiError('Session expired. Please log in again.', 401);
   }
 
-  const json = await res.json();
-  if (!json.success) {
-    throw new Error(json.message || 'Request failed');
+  let json: any;
+  try {
+    json = await res.json();
+  } catch {
+    throw new ApiError(
+      res.ok ? 'Request failed. Please try again.' : `Request failed (${res.status})`,
+      res.status
+    );
   }
+
+  if (!res.ok || json.success === false) {
+    const message = json?.message || (res.status === 403 ? 'You do not have permission to perform this action.' : 'Request failed. Please try again.');
+    throw new ApiError(message, res.status, json?.success === false ? json : undefined);
+  }
+
   return json;
 }
 
