@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { StatusChip } from '@/components/StatusChip';
 import { leaveApi, LeaveResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { handleApiError } from '@/lib/api-error';
 import { cn } from '@/lib/utils';
 import { CalendarIcon, CalendarOff, Loader2, Info, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
