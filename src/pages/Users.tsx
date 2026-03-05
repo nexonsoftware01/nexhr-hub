@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { usersApi, User } from '@/lib/api';
 import { StatusChip } from '@/components/StatusChip';
 import { useToast } from '@/hooks/use-toast';
+import { handleApiError } from '@/lib/api-error';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +22,7 @@ export default function UsersPage() {
     setLoading(true);
     usersApi.list()
       .then(res => setUsers(res.data || []))
-      .catch(err => toast({ title: 'Error', description: err.message, variant: 'destructive' }))
+      .catch(err => handleApiError(err, { title: 'Failed to Load Users' }))
       .finally(() => setLoading(false));
   };
 
@@ -144,7 +145,7 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
       setOpen(false);
       onCreated();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'Create User Failed' });
     } finally {
       setLoading(false);
     }
@@ -210,7 +211,7 @@ function AssignManagerDialog({ userId, users, onAssigned }: { userId: number; us
       setOpen(false);
       onAssigned();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'Assign Manager Failed' });
     } finally {
       setLoading(false);
     }
@@ -264,7 +265,7 @@ function AssignSalaryDialog({ userId, currentSalary, onAssigned }: { userId: num
       setOpen(false);
       onAssigned();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'Update Salary Failed' });
     } finally {
       setLoading(false);
     }
@@ -307,7 +308,7 @@ function DeactivateButton({ userId, userName, onDeactivated }: { userId: number;
       setOpen(false);
       onDeactivated();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'Deactivation Failed' });
     } finally {
       setLoading(false);
     }

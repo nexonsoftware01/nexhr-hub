@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { StatusChip } from '@/components/StatusChip';
 import { wfhApi, WfhResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { handleApiError } from '@/lib/api-error';
 import { cn } from '@/lib/utils';
 import { CalendarIcon, Home, Loader2, Info, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,7 +29,7 @@ export default function WFHApply() {
       setResult(res.data);
       toast({ title: 'WFH Request Submitted', description: res.message });
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'WFH Request Failed' });
     } finally {
       setLoading(false);
     }

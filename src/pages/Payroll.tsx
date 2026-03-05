@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { payrollApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { handleApiError } from '@/lib/api-error';
 import { Download, FileSpreadsheet, Loader2, Info } from 'lucide-react';
 
 export default function Payroll() {
@@ -18,7 +19,7 @@ export default function Payroll() {
       await payrollApi.download(Number(year), Number(month));
       toast({ title: 'Payroll Downloaded', description: `Payroll for ${monthNames[Number(month) - 1]} ${year} has been downloaded.` });
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'Payroll Download Failed' });
     } finally {
       setLoading(false);
     }

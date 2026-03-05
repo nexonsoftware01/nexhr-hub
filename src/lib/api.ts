@@ -1,4 +1,5 @@
 import { getDeviceId, getDeviceName } from './device';
+import { ApiError } from './api-error';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
@@ -208,7 +209,12 @@ export async function apiRequest<T = any>(
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
 
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+  } catch (fetchErr) {
+    throw new ApiError('Network error. Please try again.', 0);
+  }
 
   if (res.status === 401 && retry) {
     const refreshed = await refreshAccessToken();
@@ -217,13 +223,24 @@ export async function apiRequest<T = any>(
     }
     clearTokens();
     window.location.href = '/login';
-    throw new Error('Session expired');
+    throw new ApiError('Session expired. Please log in again.', 401);
   }
 
-  const json = await res.json();
-  if (!json.success) {
-    throw new Error(json.message || 'Request failed');
+  let json: any;
+  try {
+    json = await res.json();
+  } catch {
+    throw new ApiError(
+      res.ok ? 'Request failed. Please try again.' : `Request failed (${res.status})`,
+      res.status
+    );
   }
+
+  if (!res.ok || json.success === false) {
+    const message = json?.message || (res.status === 403 ? 'You do not have permission to perform this action.' : 'Request failed. Please try again.');
+    throw new ApiError(message, res.status, json?.success === false ? json : undefined);
+  }
+
   return json;
 }
 
@@ -350,7 +367,14 @@ export const payrollApi = USE_MOCK ? {
     const token = getAccessToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
     const res = await fetch(`${API_BASE_URL}/api/payroll/generate?year=${year}&month=${month}`, { headers });
-    if (!res.ok) throw new Error('Failed to download payroll');
+    if (!res.ok) {
+      let message = 'Failed to download payroll';
+      try {
+        const json = await res.json();
+        if (json?.message) message = json.message;
+      } catch {}
+      throw new ApiError(message, res.status);
+    }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
