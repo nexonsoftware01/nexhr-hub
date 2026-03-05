@@ -40,14 +40,14 @@ const App = () => (
               <Route path="/attendance/team" element={<TeamAttendance />} />
               <Route path="/attendance/team/:employeeId" element={<TeamMemberAttendance />} />
               <Route path="/users" element={
-                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'HR']}>
+                <ProtectedRoute allowedRoles={['DIRECTOR', 'HR']}>
                   <UsersPage />
                 </ProtectedRoute>
               } />
               <Route path="/wfh/apply" element={<WFHApply />} />
               <Route path="/leave/apply" element={<LeaveApply />} />
               <Route path="/payroll" element={
-                <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                <ProtectedRoute allowedRoles={['DIRECTOR']}>
                   <Payroll />
                 </ProtectedRoute>
               } />

@@ -119,7 +119,7 @@ export default function Dashboard() {
               color="bg-primary/10 text-primary"
             />
           )}
-          {user.role === 'SUPER_ADMIN' && (
+          {user.role === 'DIRECTOR' && (
             <QuickAction
               to="/payroll"
               icon={FileSpreadsheet}

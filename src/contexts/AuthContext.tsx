@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { setTokens, clearTokens, getAccessToken } from '@/lib/api';
 
-export type UserRole = 'SUPER_ADMIN' | 'HR' | 'EMPLOYEE';
+export type UserRole = 'DIRECTOR' | 'HR' | 'EMPLOYEE';
 
 export interface AuthUser {
   userId: number;
