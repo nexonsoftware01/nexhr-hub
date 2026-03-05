@@ -211,7 +211,7 @@ function AssignManagerDialog({ userId, users, onAssigned }: { userId: number; us
       setOpen(false);
       onAssigned();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'Assign Manager Failed' });
     } finally {
       setLoading(false);
     }
