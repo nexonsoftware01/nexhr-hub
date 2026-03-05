@@ -145,7 +145,7 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
       setOpen(false);
       onCreated();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      handleApiError(err, { title: 'Create User Failed' });
     } finally {
       setLoading(false);
     }
