@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/StatusChip';
+import { PageHeader } from '@/components/PageHeader';
 import { attendanceApi, PunchResponse } from '@/lib/api';
 import { getDeviceId } from '@/lib/device';
 import { useToast } from '@/hooks/use-toast';
@@ -59,7 +60,6 @@ export default function Attendance() {
     } catch (err: any) {
       setLocationLoading(false);
 
-      // Handle geolocation errors separately (not API errors)
       if (err?.code === 1 || err?.code === 2 || err?.code === 3) {
         const msg = err.code === 1 ? 'Location permission denied. Please enable it.'
           : err.code === 2 ? 'Location unavailable. Try again.'
@@ -75,16 +75,13 @@ export default function Attendance() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6 animate-fade-in-up">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Attendance</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Punch in or out with your current location</p>
-      </div>
+      <PageHeader title="Attendance" description="Punch in or out with your current location" icon={Navigation} iconClassName="bg-accent/10 text-accent" />
 
       {/* Punch Card */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-card space-y-6">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent">
-            <Navigation className="h-6 w-6" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+            <Clock className="h-6 w-6" />
           </div>
           <div>
             <h2 className="font-semibold text-card-foreground">Geofenced Attendance</h2>
@@ -93,8 +90,8 @@ export default function Attendance() {
         </div>
 
         {locationLoading && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground rounded-lg bg-muted/50 p-3">
+            <Loader2 className="h-4 w-4 animate-spin text-accent" />
             <span>Acquiring location...</span>
           </div>
         )}
@@ -103,7 +100,7 @@ export default function Attendance() {
           <Button
             onClick={() => handlePunch('in')}
             disabled={loading}
-            className="h-14 gap-2 text-base"
+            className="h-14 gap-2 text-base rounded-xl"
             variant="default"
           >
             {loading && !punchedIn ? <Loader2 className="h-5 w-5 animate-spin" /> : <Clock className="h-5 w-5" />}
@@ -112,7 +109,7 @@ export default function Attendance() {
           <Button
             onClick={() => handlePunch('out')}
             disabled={loading}
-            className="h-14 gap-2 text-base"
+            className="h-14 gap-2 text-base rounded-xl"
             variant="outline"
           >
             {loading && punchedIn ? <Loader2 className="h-5 w-5 animate-spin" /> : <Clock className="h-5 w-5" />}
@@ -128,7 +125,7 @@ export default function Attendance() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
-            className={`rounded-xl border p-5 ${
+            className={`rounded-2xl border p-5 ${
               result.status === 'ACCEPTED'
                 ? 'border-success/30 bg-success/5'
                 : 'border-destructive/30 bg-destructive/5'
@@ -163,7 +160,7 @@ export default function Attendance() {
       </AnimatePresence>
 
       {/* Info */}
-      <div className="rounded-lg bg-muted/50 p-4 text-xs text-muted-foreground space-y-1">
+      <div className="rounded-xl bg-muted/40 border border-border/50 p-4 text-xs text-muted-foreground space-y-1.5">
         <p>• Ensure location services are enabled for accurate tracking</p>
         <p>• You must be within the office geofence radius to punch successfully</p>
         <p>• Punch in first, then punch out when you leave</p>
@@ -171,7 +168,7 @@ export default function Attendance() {
       </div>
 
       {import.meta.env.DEV && (
-        <div className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground flex items-center gap-2">
+        <div className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground flex items-center gap-2">
           <Smartphone className="h-3.5 w-3.5 shrink-0" />
           <span className="font-mono break-all">Device ID: {getDeviceId()}</span>
         </div>

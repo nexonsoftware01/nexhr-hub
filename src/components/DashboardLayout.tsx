@@ -22,7 +22,7 @@ export function DashboardLayout() {
       {/* Main content */}
       <div className="flex flex-1 flex-col">
         {/* Mobile header */}
-        <header className="flex h-14 items-center gap-3 border-b border-border bg-card px-4 lg:hidden">
+        <header className="flex h-14 items-center gap-3 border-b border-border bg-card/80 backdrop-blur-md px-4 lg:hidden">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="shrink-0">
@@ -42,7 +42,7 @@ export function DashboardLayout() {
         </header>
 
         {/* Desktop header */}
-        <header className="hidden lg:flex h-14 items-center justify-between border-b border-border bg-card px-6">
+        <header className="hidden lg:flex h-14 items-center justify-between border-b border-border bg-card/60 backdrop-blur-md px-6">
           <div />
           <div className="flex items-center gap-3">
             {user && (
@@ -51,14 +51,14 @@ export function DashboardLayout() {
                 <p className="text-xs text-muted-foreground">{user.role.replace(/_/g, ' ')}</p>
               </div>
             )}
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent/70 text-accent-foreground text-sm font-bold shadow-md">
               {user?.name?.charAt(0) || 'U'}
             </div>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        {/* Page content with dot pattern */}
+        <main className="flex-1 overflow-y-auto bg-dot-pattern p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

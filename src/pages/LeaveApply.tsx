@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { StatusChip } from '@/components/StatusChip';
+import { PageHeader } from '@/components/PageHeader';
 import { leaveApi, LeaveResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/api-error';
@@ -37,35 +38,25 @@ export default function LeaveApply() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6 animate-fade-in-up">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Apply Leave</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Submit a leave request</p>
-      </div>
+      <PageHeader title="Apply Leave" description="Submit a leave request" icon={CalendarOff} iconClassName="bg-warning/10 text-warning" />
 
       {/* Policy hint */}
-      <div className="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/5 p-4">
+      <div className="flex items-start gap-3 rounded-xl border border-warning/20 bg-warning/5 p-4">
         <Info className="h-5 w-5 text-warning shrink-0 mt-0.5" />
         <div className="text-sm text-card-foreground">
-          <p className="font-medium">Leave Policy</p>
-          <p className="mt-1 text-muted-foreground">
+          <p className="font-semibold">Leave Policy</p>
+          <p className="mt-1 text-muted-foreground leading-relaxed">
             1st leave per month is allowed without salary deduction. Additional leaves may affect your salary. Leave can only be applied before 11:30 AM.
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-6 shadow-card space-y-5">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warning/10 text-warning">
-            <CalendarOff className="h-5 w-5" />
-          </div>
-          <h2 className="font-semibold text-card-foreground">Leave Request</h2>
-        </div>
-
+      <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-5">
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Date</label>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
+              <Button variant="outline" className={cn('w-full justify-start text-left font-normal rounded-xl h-11', !date && 'text-muted-foreground')}>
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {date ? format(date, 'PPP') : 'Pick a date'}
               </Button>
@@ -91,10 +82,11 @@ export default function LeaveApply() {
             placeholder="Reason for leave..."
             rows={3}
             required
+            className="rounded-xl"
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={loading || !date || !reason.trim()}>
+        <Button type="submit" className="w-full h-11 rounded-xl" disabled={loading || !date || !reason.trim()}>
           {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
           Submit Leave
         </Button>
@@ -105,7 +97,7 @@ export default function LeaveApply() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border border-border bg-card p-5 shadow-card space-y-3"
+            className="rounded-2xl border border-success/20 bg-success/5 p-5 shadow-card space-y-3"
           >
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-success" />

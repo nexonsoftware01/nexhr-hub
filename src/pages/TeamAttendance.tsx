@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { attendanceApi, TeamMemberSummary } from '@/lib/api';
+import { PageHeader } from '@/components/PageHeader';
 import { useToast } from '@/hooks/use-toast';
 import { Users, Loader2, Eye } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,36 +29,30 @@ export default function TeamAttendance() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Team Attendance</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Monthly summary of your team</p>
-        </div>
-        <div className="flex gap-2">
-          <Select value={String(month)} onValueChange={v => setMonth(Number(v))}>
-            <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {months.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={String(year)} onValueChange={v => setYear(Number(v))}>
-            <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {[2024, 2025, 2026].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <PageHeader title="Team Attendance" description="Monthly summary of your team" icon={Users} iconClassName="bg-info/10 text-info">
+        <Select value={String(month)} onValueChange={v => setMonth(Number(v))}>
+          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {months.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={String(year)} onValueChange={v => setYear(Number(v))}>
+          <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {[2024, 2025, 2026].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </PageHeader>
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : data.length > 0 ? (
-        <div className="rounded-lg border border-border bg-card shadow-card overflow-hidden">
+        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50">
+              <TableRow className="bg-muted/30">
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead className="text-center">Present</TableHead>
@@ -68,16 +63,17 @@ export default function TeamAttendance() {
             </TableHeader>
             <TableBody>
               {data.map(member => (
-                <TableRow key={member.userId}>
+                <TableRow key={member.userId} className="hover:bg-muted/20 transition-colors">
                   <TableCell className="font-medium">{member.name}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{member.email}</TableCell>
                   <TableCell className="text-center">{member.presentDays}</TableCell>
                   <TableCell className="text-center">{member.completedDays}</TableCell>
-                  <TableCell className="text-right">{member.avgHoursPerCompletedDay.toFixed(1)}h</TableCell>
+                  <TableCell className="text-right font-medium">{member.avgHoursPerCompletedDay.toFixed(1)}h</TableCell>
                   <TableCell className="text-center">
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="rounded-lg"
                       onClick={() => navigate(`/attendance/team/${member.userId}?year=${year}&month=${month}`)}
                     >
                       <Eye className="h-4 w-4" />
@@ -89,8 +85,10 @@ export default function TeamAttendance() {
           </Table>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card py-16 text-center">
-          <Users className="h-12 w-12 text-muted-foreground/30 mb-4" />
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-16 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50 mb-4">
+            <Users className="h-8 w-8 text-muted-foreground/40" />
+          </div>
           <p className="text-sm text-muted-foreground">No team data available for this period</p>
         </div>
       )}

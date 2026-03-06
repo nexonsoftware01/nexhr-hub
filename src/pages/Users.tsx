@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { usersApi, User } from '@/lib/api';
 import { StatusChip } from '@/components/StatusChip';
+import { PageHeader } from '@/components/PageHeader';
 import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/api-error';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,7 +30,6 @@ export default function UsersPage() {
   useEffect(() => { fetchUsers(); }, []);
 
   const filtered = users.filter(u => {
-    // HR should not see DIRECTOR users
     if (currentUser?.role === 'HR' && u.role === 'DIRECTOR') return false;
     return u.name.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase());
@@ -37,15 +37,9 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">User Management</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Create and manage employees</p>
-        </div>
-        <div className="flex gap-2">
-          <CreateUserDialog onCreated={fetchUsers} />
-        </div>
-      </div>
+      <PageHeader title="User Management" description="Create and manage employees" icon={UsersIcon} iconClassName="bg-primary/10 text-primary">
+        <CreateUserDialog onCreated={fetchUsers} />
+      </PageHeader>
 
       {/* Search */}
       <div className="relative max-w-sm">
@@ -54,7 +48,7 @@ export default function UsersPage() {
           placeholder="Search users..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="pl-10"
+          className="pl-10 rounded-xl"
         />
       </div>
 
@@ -63,10 +57,10 @@ export default function UsersPage() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : filtered.length > 0 ? (
-        <div className="rounded-lg border border-border bg-card shadow-card overflow-hidden">
+        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50">
+              <TableRow className="bg-muted/30">
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
@@ -77,7 +71,7 @@ export default function UsersPage() {
             </TableHeader>
             <TableBody>
               {filtered.map(user => (
-                <TableRow key={user.id}>
+                <TableRow key={user.id} className="hover:bg-muted/20 transition-colors">
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{user.email}</TableCell>
                   <TableCell><StatusChip status={user.role} /></TableCell>
@@ -110,8 +104,10 @@ export default function UsersPage() {
           </Table>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card py-16 text-center">
-          <UsersIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-16 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50 mb-4">
+            <UsersIcon className="h-8 w-8 text-muted-foreground/40" />
+          </div>
           <p className="text-sm text-muted-foreground">
             {search ? 'No users match your search' : 'No users found'}
           </p>
@@ -154,7 +150,7 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button className="gap-2 rounded-xl">
           <UserPlus className="h-4 w-4" />
           Add User
         </Button>
@@ -166,16 +162,16 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Full Name</label>
-            <Input value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" required />
+            <Input value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" required className="rounded-xl" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Email</label>
-            <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="john@nexon.com" required />
+            <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="john@nexon.com" required className="rounded-xl" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Role</label>
             <Select value={role} onValueChange={setRole}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="EMPLOYEE">Employee</SelectItem>
                 <SelectItem value="HR">HR</SelectItem>
@@ -184,9 +180,9 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Monthly Salary <span className="text-muted-foreground font-normal">(optional)</span></label>
-            <Input type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="e.g. 45000" min="0" />
+            <Input type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="e.g. 45000" min="0" className="rounded-xl" />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full rounded-xl" disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Create User
           </Button>
@@ -233,14 +229,14 @@ function AssignManagerDialog({ userId, users, onAssigned }: { userId: number; us
         </DialogHeader>
         <div className="space-y-4 mt-2">
           <Select value={managerId} onValueChange={setManagerId}>
-            <SelectTrigger><SelectValue placeholder="Select manager..." /></SelectTrigger>
+            <SelectTrigger className="rounded-xl"><SelectValue placeholder="Select manager..." /></SelectTrigger>
             <SelectContent>
               {eligibleManagers.map(u => (
                 <SelectItem key={u.id} value={String(u.id)}>{u.name} ({u.role})</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={handleAssign} className="w-full" disabled={loading || !managerId}>
+          <Button onClick={handleAssign} className="w-full rounded-xl" disabled={loading || !managerId}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Assign
           </Button>
@@ -284,8 +280,8 @@ function AssignSalaryDialog({ userId, currentSalary, onAssigned }: { userId: num
           <DialogTitle>Assign Salary</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-2">
-          <Input type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="Monthly salary (₹)" min="1" />
-          <Button onClick={handleAssign} className="w-full" disabled={loading || !salary || Number(salary) <= 0}>
+          <Input type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="Monthly salary (₹)" min="1" className="rounded-xl" />
+          <Button onClick={handleAssign} className="w-full rounded-xl" disabled={loading || !salary || Number(salary) <= 0}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Update Salary
           </Button>
@@ -332,8 +328,8 @@ function DeactivateButton({ userId, userName, onDeactivated }: { userId: number;
           Are you sure you want to deactivate <span className="font-medium text-foreground">{userName}</span>? They will no longer be able to log in.
         </p>
         <div className="flex gap-2 mt-4">
-          <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="destructive" className="flex-1" onClick={handleDeactivate} disabled={loading}>
+          <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="destructive" className="flex-1 rounded-xl" onClick={handleDeactivate} disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Deactivate
           </Button>
