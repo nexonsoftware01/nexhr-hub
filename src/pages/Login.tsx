@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, ArrowRight, Building2, ShieldCheck, Loader2 } from 'lucide-react';
+import { Mail, ArrowRight, Building2, ShieldCheck, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -20,7 +20,6 @@ export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Cooldown timer for resend
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const timer = setTimeout(() => setResendCooldown(c => c - 1), 1000);
@@ -69,7 +68,7 @@ export default function Login() {
       await authApi.sendOtp(email.trim());
       toast({ title: 'OTP Resent', description: 'New code sent to your email' });
       setOtp('');
-      setResendCooldown(30); // Default cooldown after successful resend
+      setResendCooldown(30);
     } catch (err: any) {
       const apiErr = handleApiError(err, { title: 'Resend Failed' });
       if (apiErr.isRateLimited && apiErr.cooldownSeconds) {
@@ -84,45 +83,53 @@ export default function Login() {
     <div className="flex min-h-screen">
       {/* Left branding panel */}
       <div className="hidden lg:flex lg:w-[480px] xl:w-[560px] flex-col justify-between bg-gradient-hero p-10 text-primary-foreground relative overflow-hidden">
-        {/* Decorative shapes */}
-        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-accent/10" />
+        {/* Animated decorative shapes */}
+        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-accent/10 animate-pulse-subtle" />
         <div className="absolute bottom-20 -left-12 h-40 w-40 rounded-full bg-accent/5" />
-        <div className="absolute bottom-40 right-10 h-20 w-20 rounded-full bg-accent/8" />
+        <div className="absolute top-1/2 right-20 h-24 w-24 rounded-full bg-accent/[0.07]" />
+        {/* Dot grid overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
 
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/20 text-accent-foreground backdrop-blur-sm border border-accent/20">
               <Building2 className="h-6 w-6" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">NexHR</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight">NexHR</h1>
           </div>
-          <p className="text-sm font-medium tracking-widest uppercase text-primary-foreground/50">
+          <p className="text-[11px] font-semibold tracking-[0.2em] uppercase text-primary-foreground/40">
             Nexon Software Solutions
           </p>
         </div>
 
         <div className="relative z-10 space-y-6">
-          <h2 className="text-3xl xl:text-4xl font-bold leading-tight">
+          <h2 className="text-3xl xl:text-4xl font-extrabold leading-tight">
             Your complete
             <br />
-            HR workspace
+            <span className="text-accent">HR workspace</span>
           </h2>
-          <p className="text-base text-primary-foreground/70 leading-relaxed max-w-sm">
+          <p className="text-base text-primary-foreground/60 leading-relaxed max-w-sm">
             Manage attendance, leaves, and your team — all in one modern, intuitive platform.
           </p>
-          <div className="flex items-center gap-3 pt-4">
-            <ShieldCheck className="h-5 w-5 text-accent" />
-            <span className="text-sm text-primary-foreground/60">Secure OTP-based authentication</span>
+          <div className="space-y-3 pt-4">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="h-4 w-4 text-accent" />
+              <span className="text-sm text-primary-foreground/50">Secure OTP-based authentication</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-4 w-4 text-accent" />
+              <span className="text-sm text-primary-foreground/50">Real-time geofenced attendance</span>
+            </div>
           </div>
         </div>
 
-        <p className="relative z-10 text-xs text-primary-foreground/30">
+        <p className="relative z-10 text-xs text-primary-foreground/25">
           © {new Date().getFullYear()} Nexon Software Solutions. All rights reserved.
         </p>
       </div>
 
       {/* Right form panel */}
-      <div className="flex flex-1 items-center justify-center px-6 py-12 bg-background">
+      <div className="flex flex-1 items-center justify-center px-6 py-12 bg-background bg-dot-pattern">
         <div className="w-full max-w-[400px]">
           {/* Mobile logo */}
           <div className="flex items-center gap-3 mb-10 lg:hidden">
@@ -145,7 +152,7 @@ export default function Login() {
                 transition={{ duration: 0.3 }}
               >
                 <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-foreground">Welcome back</h2>
+                  <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Welcome back</h2>
                   <p className="mt-2 text-sm text-muted-foreground">Enter your email to receive a verification code</p>
                 </div>
 
@@ -159,14 +166,14 @@ export default function Login() {
                         placeholder="name@nexon.com"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        className="pl-10 h-11"
+                        className="pl-10 h-12 rounded-xl"
                         required
                         autoFocus
                       />
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full h-11 gap-2" disabled={loading || !email.trim()}>
+                  <Button type="submit" className="w-full h-12 gap-2 rounded-xl text-sm font-semibold" disabled={loading || !email.trim()}>
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
                     Send Verification Code
                   </Button>
@@ -181,7 +188,7 @@ export default function Login() {
                 transition={{ duration: 0.3 }}
               >
                 <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-foreground">Enter verification code</h2>
+                  <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Enter verification code</h2>
                   <p className="mt-2 text-sm text-muted-foreground">
                     We sent a 6-digit code to <span className="font-medium text-foreground">{email}</span>
                   </p>
@@ -201,7 +208,7 @@ export default function Login() {
                     </InputOTP>
                   </div>
 
-                  <Button type="submit" className="w-full h-11 gap-2" disabled={loading || otp.length < 6}>
+                  <Button type="submit" className="w-full h-12 gap-2 rounded-xl text-sm font-semibold" disabled={loading || otp.length < 6}>
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
                     Verify & Sign In
                   </Button>
