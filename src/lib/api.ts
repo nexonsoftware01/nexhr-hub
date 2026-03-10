@@ -1,7 +1,7 @@
 import { getDeviceId, getDeviceName } from './device';
 import { ApiError } from './api-error';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.nexonhr.com';
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 // Lazy-load mock modules to avoid circular dependency (mock-data imports types from this file)
