@@ -41,7 +41,7 @@ function extractUser(token: string): AuthUser | null {
   return {
     userId: payload.userId || payload.id || 0,
     email: payload.sub || payload.email || '',
-    name: payload.name || payload.sub?.split('@')[0] || 'User',
+    name: payload.name || formatNameFromEmail(payload.sub) || 'User',
     role: payload.role || 'EMPLOYEE',
   };
 }
