@@ -35,6 +35,13 @@ function decodeJWT(token: string): any {
   }
 }
 
+function formatNameFromEmail(email?: string): string {
+  if (!email) return '';
+  return email.split('@')[0]
+    .replace(/[._-]/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function extractUser(token: string): AuthUser | null {
   const payload = decodeJWT(token);
   if (!payload) return null;
