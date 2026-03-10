@@ -65,7 +65,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
               Nex<span className="text-sidebar-primary">HR</span>
             </h1>
             <p className="text-[10px] font-semibold tracking-[0.2em] text-sidebar-foreground/40 uppercase">
-              Nexon Solutions
+              Nexon Software Solutions
             </p>
           </div>
         )}
