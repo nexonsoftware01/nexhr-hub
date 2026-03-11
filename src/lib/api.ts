@@ -176,19 +176,23 @@ export interface LeaveResponse {
   salaryDeductionApplicable: boolean;
 }
 
-async function refreshAccessToken(): Promise<boolean> {
+export async function refreshAccessToken(): Promise<boolean> {
   if (!refreshToken) return false;
+
   try {
     const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
     });
+
     const json: ApiResponse<{ accessToken: string; refreshToken: string }> = await res.json();
+
     if (json.success && json.data) {
       setTokens(json.data.accessToken, json.data.refreshToken);
       return true;
     }
+
     return false;
   } catch {
     return false;
