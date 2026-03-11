@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { setTokens, clearTokens, getAccessToken } from '@/lib/api';
+import { setTokens, clearTokens, getAccessToken, refreshAccessToken } from '@/lib/api';
 
 export type UserRole = 'DIRECTOR' | 'HR' | 'EMPLOYEE';
 
@@ -58,16 +58,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = getAccessToken();
-    if (token) {
+    const initializeAuth = async () => {
+      const token = getAccessToken();
+
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
       const decoded = decodeJWT(token);
+
       if (decoded && decoded.exp * 1000 > Date.now()) {
         setUser(extractUser(token));
+        setIsLoading(false);
+        return;
+      }
+
+      const refreshed = await refreshAccessToken();
+
+      if (refreshed) {
+        const newToken = getAccessToken();
+
+        if (newToken) {
+          setUser(extractUser(newToken));
+        } else {
+          clearTokens();
+          setUser(null);
+        }
       } else {
         clearTokens();
+        setUser(null);
       }
-    }
-    setIsLoading(false);
+
+      setIsLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const login = useCallback((accessToken: string, refreshToken: string) => {
