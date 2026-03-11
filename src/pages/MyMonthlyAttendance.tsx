@@ -67,14 +67,43 @@ export default function MyMonthlyAttendance() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.days.map(day => (
-                    <TableRow key={day.date} className="hover:bg-muted/20 transition-colors">
-                      <TableCell className="font-medium">{new Date(day.date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</TableCell>
-                      <TableCell>{day.punchInTime ? new Date(day.punchInTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—'}</TableCell>
-                      <TableCell>{day.punchOutTime ? new Date(day.punchOutTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '—'}</TableCell>
-                      <TableCell className="text-right font-medium">{(day.totalWorkedMinutes / 60).toFixed(1)}h</TableCell>
-                    </TableRow>
-                  ))}
+                {data.days.map((day) => (
+  <TableRow key={day.date} className="hover:bg-muted/20 transition-colors">
+    
+    <TableCell className="font-medium">
+      {new Date(day.date).toLocaleDateString('en-IN', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short'
+      })}
+    </TableCell>
+
+    <TableCell>
+      {day.punchInTime
+        ? new Date(day.punchInTime).toLocaleTimeString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Asia/Kolkata'
+          })
+        : '—'}
+    </TableCell>
+
+    <TableCell>
+      {day.punchOutTime
+        ? new Date(day.punchOutTime).toLocaleTimeString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Asia/Kolkata'
+          })
+        : '—'}
+    </TableCell>
+
+    <TableCell className="text-right font-medium">
+      {(day.totalWorkedMinutes / 60).toFixed(1)}h
+    </TableCell>
+
+  </TableRow>
+))}
                 </TableBody>
               </Table>
             </div>
