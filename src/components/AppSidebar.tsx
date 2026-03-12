@@ -48,7 +48,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
   return (
     <aside className={cn(
-      'relative flex h-screen flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out overflow-hidden',
+      'relative flex h-dvh flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out overflow-hidden',
       collapsed ? 'w-[68px]' : 'w-[264px]'
     )}>
       {/* Subtle gradient overlay for depth */}
