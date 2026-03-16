@@ -138,15 +138,15 @@ export interface MonthlyAttendance {
   year: number;
   month: number;
   presentDays: number;
-  completedDays: number;
+  halfDays: number;
+  absentDays: number;
   totalWorkedMinutes: number;
-  avgHoursPerCompletedDay: number;
-  avgHoursPerCalendarDay: number;
   days: Array<{
     date: string;
     punchInTime: string;
     punchOutTime: string | null;
     totalWorkedMinutes: number;
+    status: 'PRESENT' | 'HALF_DAY' | 'ABSENT';
   }>;
 }
 
@@ -155,9 +155,9 @@ export interface TeamMemberSummary {
   name: string;
   email: string;
   presentDays: number;
-  completedDays: number;
+  halfDays: number;
+  absentDays: number;
   totalWorkedMinutes: number;
-  avgHoursPerCompletedDay: number;
 }
 
 export interface WfhResponse {
