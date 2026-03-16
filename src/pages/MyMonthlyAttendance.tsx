@@ -50,8 +50,8 @@ export default function MyMonthlyAttendance() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard title="Present Days" value={data.presentDays} icon={CheckCircle} iconClassName="bg-success/10 text-success" />
-            <StatCard title="Half Days" value={data.halfDays} icon={ClockAlert} iconClassName="bg-warning/10 text-warning" />
-            <StatCard title="Absent Days" value={data.absentDays} icon={AlertTriangle} iconClassName="bg-destructive/10 text-destructive" />
+            <StatCard title="Half Days" value={data.halfDayCount} icon={ClockAlert} iconClassName="bg-warning/10 text-warning" />
+            <StatCard title="Absent Days" value={data.absentCount} icon={AlertTriangle} iconClassName="bg-destructive/10 text-destructive" />
             <StatCard title="Total Hours" value={(data.totalWorkedMinutes / 60).toFixed(1)} subtitle="hours worked" icon={Clock} iconClassName="bg-info/10 text-info" />
           </div>
 

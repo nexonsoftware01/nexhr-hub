@@ -153,8 +153,8 @@ export const mockAttendanceApi = {
     const data: MonthlyAttendance = {
       year: y, month: m,
       presentDays: days.filter(d => d.status === 'PRESENT').length,
-      halfDays: days.filter(d => d.status === 'HALF_DAY').length,
-      absentDays: days.filter(d => d.status === 'ABSENT').length,
+      halfDayCount: days.filter(d => d.status === 'HALF_DAY').length,
+      absentCount: days.filter(d => d.status === 'ABSENT').length,
       totalWorkedMinutes: totalMinutes,
       days,
     };
@@ -167,8 +167,8 @@ export const mockAttendanceApi = {
       name: u.name,
       email: u.email,
       presentDays: 12 + Math.floor(Math.random() * 8),
-      halfDays: 1 + Math.floor(Math.random() * 4),
-      absentDays: Math.floor(Math.random() * 3),
+      halfDayCount: 1 + Math.floor(Math.random() * 4),
+      absentCount: Math.floor(Math.random() * 3),
       totalWorkedMinutes: 3000 + Math.floor(Math.random() * 2000),
     }));
     return mockOk(team, 'Team monthly attendance fetched');
@@ -182,8 +182,8 @@ export const mockAttendanceApi = {
     const data: MonthlyAttendance = {
       year: y, month: m,
       presentDays: days.filter(d => d.status === 'PRESENT').length,
-      halfDays: days.filter(d => d.status === 'HALF_DAY').length,
-      absentDays: days.filter(d => d.status === 'ABSENT').length,
+      halfDayCount: days.filter(d => d.status === 'HALF_DAY').length,
+      absentCount: days.filter(d => d.status === 'ABSENT').length,
       totalWorkedMinutes: totalMinutes,
       days,
     };
@@ -199,9 +199,9 @@ export const mockWfhApi = {
     const resp: WfhResponse = {
       id: wfhCount,
       date: data.date,
-      status: isFirst ? 'APPROVED' : 'APPLIED',
+      status: 'APPROVED',
       reason: data.reason,
-      approvalRequired: !isFirst,
+      salaryDeductionApplicable: !isFirst,
     };
     return mockOk(resp, 'WFH request submitted successfully');
   },

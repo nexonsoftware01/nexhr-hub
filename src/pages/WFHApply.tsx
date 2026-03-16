@@ -113,8 +113,8 @@ export default function WFHApply() {
                 <StatusChip status={result.status} />
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Approval Required</span>
-                <span className="font-medium">{result.approvalRequired ? 'Yes' : 'No'}</span>
+                <span className="text-muted-foreground">Salary Deduction</span>
+                <span className="font-medium">{result.salaryDeductionApplicable ? 'Yes' : 'No'}</span>
               </div>
             </div>
           </motion.div>

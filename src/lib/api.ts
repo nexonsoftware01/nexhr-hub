@@ -1,4 +1,4 @@
-import { getDeviceId, getDeviceName } from './device';
+import { getDeviceId, getDeviceName, PasskeyAssertionResult } from './device';
 import { ApiError } from './api-error';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.nexonhr.com';
@@ -138,8 +138,8 @@ export interface MonthlyAttendance {
   year: number;
   month: number;
   presentDays: number;
-  halfDays: number;
-  absentDays: number;
+  halfDayCount: number;
+  absentCount: number;
   totalWorkedMinutes: number;
   days: Array<{
     date: string;
@@ -155,8 +155,8 @@ export interface TeamMemberSummary {
   name: string;
   email: string;
   presentDays: number;
-  halfDays: number;
-  absentDays: number;
+  halfDayCount: number;
+  absentCount: number;
   totalWorkedMinutes: number;
 }
 
@@ -165,7 +165,24 @@ export interface WfhResponse {
   date: string;
   status: 'APPLIED' | 'APPROVED' | 'REJECTED';
   reason: string;
-  approvalRequired: boolean;
+  salaryDeductionApplicable: boolean;
+}
+
+export interface PasskeyRegistrationOptionsResponse {
+  challenge: string;
+  rpId: string;
+  rpName: string;
+  userId: string;
+  userName: string;
+  userDisplayName: string;
+  timeout: number;
+}
+
+export interface PasskeyChallengeResponse {
+  challenge: string;
+  credentialId: string;
+  rpId: string;
+  timeout: number;
 }
 
 export interface LeaveResponse {
@@ -301,22 +318,20 @@ export const usersApi = USE_MOCK ? {
 };
 
 export const attendanceApi = USE_MOCK ? {
-  punchIn: async (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) => (await getMocks()).mockAttendanceApi.punchIn(data),
-  punchOut: async (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) => (await getMocks()).mockAttendanceApi.punchOut(data),
+  punchIn: async (data: { lat: number; lng: number; accuracy: number; capturedAt?: string; passkey: PasskeyAssertionResult }) => (await getMocks()).mockAttendanceApi.punchIn(data),
+  punchOut: async (data: { lat: number; lng: number; accuracy: number; capturedAt?: string; passkey: PasskeyAssertionResult }) => (await getMocks()).mockAttendanceApi.punchOut(data),
   myMonthly: async (year?: number, month?: number) => (await getMocks()).mockAttendanceApi.myMonthly(year, month),
   teamMonthly: async (year?: number, month?: number) => (await getMocks()).mockAttendanceApi.teamMonthly(year, month),
   teamMemberMonthly: async (employeeId: number, year?: number, month?: number) => (await getMocks()).mockAttendanceApi.teamMemberMonthly(employeeId, year, month),
 } : {
-  punchIn: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
+  punchIn: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string; passkey: PasskeyAssertionResult }) =>
     apiRequest<PunchResponse>('/api/attendance/punch-in', {
       method: 'POST',
-      headers: { 'X-Device-Id': getDeviceId() },
       body: JSON.stringify(data),
     }),
-  punchOut: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string }) =>
+  punchOut: (data: { lat: number; lng: number; accuracy: number; capturedAt?: string; passkey: PasskeyAssertionResult }) =>
     apiRequest<PunchResponse>('/api/attendance/punch-out', {
       method: 'POST',
-      headers: { 'X-Device-Id': getDeviceId() },
       body: JSON.stringify(data),
     }),
   myMonthly: (year?: number, month?: number) => {
@@ -337,6 +352,19 @@ export const attendanceApi = USE_MOCK ? {
     if (month) params.set('month', String(month));
     return apiRequest<MonthlyAttendance>(`/api/attendance/team/${employeeId}/monthly?${params}`);
   },
+};
+
+export const passkeyApi = USE_MOCK ? {
+  registerOptions: async () => ({ success: true, message: 'Mock', data: {} as PasskeyRegistrationOptionsResponse, }),
+  register: async (_data: any) => ({ success: true, message: 'Mock', data: null }),
+  challenge: async () => ({ success: true, message: 'Mock', data: {} as PasskeyChallengeResponse }),
+} : {
+  registerOptions: () =>
+    apiRequest<PasskeyRegistrationOptionsResponse>('/api/attendance/passkey/register-options', { method: 'POST' }),
+  register: (data: { credentialId: string; publicKey: string; clientDataJSON: string; deviceId: string }) =>
+    apiRequest('/api/attendance/passkey/register', { method: 'POST', body: JSON.stringify(data) }),
+  challenge: () =>
+    apiRequest<PasskeyChallengeResponse>('/api/attendance/passkey/challenge', { method: 'POST' }),
 };
 
 export const wfhApi = USE_MOCK ? {

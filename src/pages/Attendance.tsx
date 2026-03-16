@@ -1,12 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/StatusChip';
 import { PageHeader } from '@/components/PageHeader';
-import { attendanceApi, PunchResponse } from '@/lib/api';
-import { getDeviceId } from '@/lib/device';
+import { attendanceApi, passkeyApi, PunchResponse } from '@/lib/api';
+import { getDeviceId, isPasskeySupported, createPasskeyCredential, getPasskeyAssertion } from '@/lib/device';
 import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/api-error';
-import { MapPin, Clock, Loader2, CheckCircle2, XCircle, Navigation, Smartphone } from 'lucide-react';
+import { MapPin, Clock, Loader2, CheckCircle2, XCircle, Navigation, Fingerprint, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Attendance() {
@@ -14,7 +14,61 @@ export default function Attendance() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [result, setResult] = useState<PunchResponse | null>(null);
   const [punchedIn, setPunchedIn] = useState(false);
+  const [registeringPasskey, setRegisteringPasskey] = useState(false);
+  const [passkeyReady, setPasskeyReady] = useState<boolean | null>(null); // null = checking
   const { toast } = useToast();
+
+  // Check if user has a registered passkey by attempting to get a challenge
+  useEffect(() => {
+    let cancelled = false;
+    async function check() {
+      try {
+        await passkeyApi.challenge();
+        if (!cancelled) setPasskeyReady(true);
+      } catch {
+        if (!cancelled) setPasskeyReady(false);
+      }
+    }
+    check();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleRegisterPasskey = async () => {
+    if (!isPasskeySupported()) {
+      toast({ title: 'Not Supported', description: 'Passkeys are not supported on this browser. Please use a modern mobile browser.', variant: 'destructive' });
+      return;
+    }
+
+    setRegisteringPasskey(true);
+    try {
+      // 1. Get registration options from server
+      const optionsRes = await passkeyApi.registerOptions();
+      const options = optionsRes.data;
+
+      // 2. Create credential on device (OS-level key generation)
+      const credential = await createPasskeyCredential(options);
+
+      // 3. Send credential to server
+      await passkeyApi.register({
+        credentialId: credential.credentialId,
+        publicKey: credential.publicKey,
+        clientDataJSON: credential.clientDataJSON,
+        deviceId: getDeviceId(),
+      });
+
+      setPasskeyReady(true);
+      toast({ title: 'Device Registered', description: 'This device is now registered for attendance punching.' });
+    } catch (err: any) {
+      // User cancelled the passkey dialog
+      if (err?.name === 'NotAllowedError') {
+        toast({ title: 'Cancelled', description: 'Passkey registration was cancelled.', variant: 'destructive' });
+      } else {
+        handleApiError(err, { title: 'Registration Failed' });
+      }
+    } finally {
+      setRegisteringPasskey(false);
+    }
+  };
 
   const getLocation = useCallback((): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
@@ -35,14 +89,24 @@ export default function Attendance() {
     setLoading(true);
     setResult(null);
     try {
+      // 1. Get passkey challenge from server
+      const challengeRes = await passkeyApi.challenge();
+      const challengeData = challengeRes.data;
+
+      // 2. Sign challenge with device passkey (OS-level crypto)
+      const assertion = await getPasskeyAssertion(challengeData);
+
+      // 3. Get device location
       const pos = await getLocation();
       setLocationLoading(false);
 
+      // 4. Send punch request with passkey proof + location
       const payload = {
         lat: pos.coords.latitude,
         lng: pos.coords.longitude,
         accuracy: pos.coords.accuracy,
         capturedAt: new Date().toISOString(),
+        passkey: assertion,
       };
 
       const res = type === 'in'
@@ -60,7 +124,9 @@ export default function Attendance() {
     } catch (err: any) {
       setLocationLoading(false);
 
-      if (err?.code === 1 || err?.code === 2 || err?.code === 3) {
+      if (err?.name === 'NotAllowedError') {
+        toast({ title: 'Passkey Required', description: 'Passkey verification was cancelled. Please try again.', variant: 'destructive' });
+      } else if (err?.code === 1 || err?.code === 2 || err?.code === 3) {
         const msg = err.code === 1 ? 'Location permission denied. Please enable it.'
           : err.code === 2 ? 'Location unavailable. Try again.'
           : 'Location request timed out.';
@@ -76,6 +142,44 @@ export default function Attendance() {
   return (
     <div className="mx-auto max-w-lg space-y-6 animate-fade-in-up">
       <PageHeader title="Attendance" description="Punch in or out with your current location" icon={Navigation} iconClassName="bg-accent/10 text-accent" />
+
+      {/* Passkey Registration Card — shown if no passkey registered */}
+      {passkeyReady === false && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 space-y-4"
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 shrink-0">
+              <Fingerprint className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-card-foreground">Register This Device</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                You need to register this device before you can punch in or out.
+                This binds your attendance to this physical device — it cannot be transferred.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleRegisterPasskey}
+            disabled={registeringPasskey}
+            className="w-full h-12 gap-2 rounded-xl"
+          >
+            {registeringPasskey ? <Loader2 className="h-5 w-5 animate-spin" /> : <Fingerprint className="h-5 w-5" />}
+            {registeringPasskey ? 'Registering...' : 'Register Device for Attendance'}
+          </Button>
+        </motion.div>
+      )}
+
+      {/* Passkey registered indicator */}
+      {passkeyReady === true && (
+        <div className="flex items-center gap-2 rounded-xl bg-success/5 border border-success/20 px-4 py-2.5 text-xs text-success">
+          <ShieldCheck className="h-4 w-4 shrink-0" />
+          <span>Device registered for attendance</span>
+        </div>
+      )}
 
       {/* Punch Card */}
       <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-6">
@@ -99,7 +203,7 @@ export default function Attendance() {
         <div className="grid grid-cols-2 gap-3">
           <Button
             onClick={() => handlePunch('in')}
-            disabled={loading}
+            disabled={loading || passkeyReady !== true}
             className="h-14 gap-2 text-base rounded-xl"
             variant="default"
           >
@@ -108,7 +212,7 @@ export default function Attendance() {
           </Button>
           <Button
             onClick={() => handlePunch('out')}
-            disabled={loading}
+            disabled={loading || passkeyReady !== true}
             className="h-14 gap-2 text-base rounded-xl"
             variant="outline"
           >
@@ -164,15 +268,8 @@ export default function Attendance() {
         <p>• Ensure location services are enabled for accurate tracking</p>
         <p>• You must be within the office geofence radius to punch successfully</p>
         <p>• Punch in first, then punch out when you leave</p>
-        <p>• Punching is only allowed from your primary registered device</p>
+        <p>• Punching is only allowed from your registered device</p>
       </div>
-
-      {import.meta.env.DEV && (
-        <div className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground flex items-center gap-2">
-          <Smartphone className="h-3.5 w-3.5 shrink-0" />
-          <span className="font-mono break-all">Device ID: {getDeviceId()}</span>
-        </div>
-      )}
     </div>
   );
 }

@@ -34,8 +34,8 @@ export default function Dashboard() {
 
   const stats = monthlyData?.data;
   const presentDays = stats?.presentDays ?? '—';
-  const halfDays = stats?.halfDays ?? '—';
-  const absentDays = stats?.absentDays ?? '—';
+  const halfDays = stats?.halfDayCount ?? '—';
+  const absentDays = stats?.absentCount ?? '—';
   const totalHours = stats?.totalWorkedMinutes
     ? `${Math.round(stats.totalWorkedMinutes / 60)}h`
     : '—';

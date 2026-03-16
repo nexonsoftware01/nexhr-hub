@@ -67,8 +67,8 @@ export default function TeamAttendance() {
                   <TableCell className="font-medium">{member.name}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{member.email}</TableCell>
                   <TableCell className="text-center">{member.presentDays}</TableCell>
-                  <TableCell className="text-center">{member.halfDays}</TableCell>
-                  <TableCell className="text-center">{member.absentDays}</TableCell>
+                  <TableCell className="text-center">{member.halfDayCount}</TableCell>
+                  <TableCell className="text-center">{member.absentCount}</TableCell>
                   <TableCell className="text-center">
                     <Button
                       variant="ghost"
