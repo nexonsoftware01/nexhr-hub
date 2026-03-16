@@ -1,7 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { StatCard } from '@/components/StatCard';
 import { StatusChip } from '@/components/StatusChip';
-import { Clock, BarChart3, Home, CalendarOff, Users, UserPlus, FileSpreadsheet } from 'lucide-react';
+import { Clock, BarChart3, Home, CalendarOff, Users, UserPlus, FileSpreadsheet, AlertTriangle, ClockAlert } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { attendanceApi } from '@/lib/api';
@@ -34,9 +34,8 @@ export default function Dashboard() {
 
   const stats = monthlyData?.data;
   const presentDays = stats?.presentDays ?? '—';
-  const avgHours = stats?.avgHoursPerCompletedDay
-    ? `${stats.avgHoursPerCompletedDay.toFixed(1)}h`
-    : '—';
+  const halfDays = stats?.halfDays ?? '—';
+  const absentDays = stats?.absentDays ?? '—';
   const totalHours = stats?.totalWorkedMinutes
     ? `${Math.round(stats.totalWorkedMinutes / 60)}h`
     : '—';
@@ -67,28 +66,28 @@ export default function Dashboard() {
           value={isLoading ? '…' : String(presentDays)}
           subtitle="This month"
           icon={BarChart3}
-          iconClassName="bg-info/10 text-info"
+          iconClassName="bg-success/10 text-success"
         />
         <StatCard
-          title="Avg Hours/Day"
-          value={isLoading ? '…' : avgHours}
-          subtitle="Per completed day"
-          icon={Clock}
-          iconClassName="bg-accent/10 text-accent"
+          title="Half Days"
+          value={isLoading ? '…' : String(halfDays)}
+          subtitle="5–9 hrs worked"
+          icon={ClockAlert}
+          iconClassName="bg-warning/10 text-warning"
+        />
+        <StatCard
+          title="Absent Days"
+          value={isLoading ? '…' : String(absentDays)}
+          subtitle="Less than 5 hrs"
+          icon={AlertTriangle}
+          iconClassName="bg-destructive/10 text-destructive"
         />
         <StatCard
           title="Total Hours"
           value={isLoading ? '…' : totalHours}
           subtitle="This month"
-          icon={Home}
-          iconClassName="bg-success/10 text-success"
-        />
-        <StatCard
-          title="Completed Days"
-          value={isLoading ? '…' : String(stats?.completedDays ?? '—')}
-          subtitle="Full day attendance"
-          icon={CalendarOff}
-          iconClassName="bg-warning/10 text-warning"
+          icon={Clock}
+          iconClassName="bg-info/10 text-info"
         />
       </motion.div>
 
