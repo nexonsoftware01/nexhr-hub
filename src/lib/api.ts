@@ -355,10 +355,13 @@ export const attendanceApi = USE_MOCK ? {
 };
 
 export const passkeyApi = USE_MOCK ? {
+  status: async () => ({ success: true, message: 'Mock', data: false }),
   registerOptions: async () => ({ success: true, message: 'Mock', data: {} as PasskeyRegistrationOptionsResponse, }),
   register: async (_data: any) => ({ success: true, message: 'Mock', data: null }),
   challenge: async () => ({ success: true, message: 'Mock', data: {} as PasskeyChallengeResponse }),
 } : {
+  status: () =>
+    apiRequest<boolean>('/api/attendance/passkey/status'),
   registerOptions: () =>
     apiRequest<PasskeyRegistrationOptionsResponse>('/api/attendance/passkey/register-options', { method: 'POST' }),
   register: (data: { credentialId: string; publicKey: string; clientDataJSON: string; deviceId: string }) =>

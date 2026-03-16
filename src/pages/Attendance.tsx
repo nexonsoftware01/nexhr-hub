@@ -18,13 +18,13 @@ export default function Attendance() {
   const [passkeyReady, setPasskeyReady] = useState<boolean | null>(null); // null = checking
   const { toast } = useToast();
 
-  // Check if user has a registered passkey by attempting to get a challenge
+  // Check if user has a registered passkey
   useEffect(() => {
     let cancelled = false;
     async function check() {
       try {
-        await passkeyApi.challenge();
-        if (!cancelled) setPasskeyReady(true);
+        const res = await passkeyApi.status();
+        if (!cancelled) setPasskeyReady(res.data === true);
       } catch {
         if (!cancelled) setPasskeyReady(false);
       }
@@ -148,10 +148,10 @@ export default function Attendance() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 space-y-4"
+          className="rounded-2xl border border-warning/20 bg-warning/5 p-5 space-y-4"
         >
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 shrink-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-warning/10 text-warning shrink-0">
               <Fingerprint className="h-5 w-5" />
             </div>
             <div>
