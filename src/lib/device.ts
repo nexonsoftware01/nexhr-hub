@@ -88,8 +88,8 @@ export async function createPasskeyCredential(options: PasskeyRegistrationOption
     ],
     authenticatorSelection: {
       authenticatorAttachment: 'platform',
-      userVerification: 'discouraged',
-      residentKey: 'discouraged',
+      userVerification: 'preferred',
+      residentKey: 'preferred',
     },
     timeout: options.timeout,
     attestation: 'none',
