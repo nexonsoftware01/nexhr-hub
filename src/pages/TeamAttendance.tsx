@@ -56,8 +56,8 @@ export default function TeamAttendance() {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead className="text-center">Present</TableHead>
-                <TableHead className="text-center">Completed</TableHead>
-                <TableHead className="text-right">Avg Hrs</TableHead>
+                <TableHead className="text-center">Half Days</TableHead>
+                <TableHead className="text-center">Absent</TableHead>
                 <TableHead className="text-center">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -67,8 +67,8 @@ export default function TeamAttendance() {
                   <TableCell className="font-medium">{member.name}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{member.email}</TableCell>
                   <TableCell className="text-center">{member.presentDays}</TableCell>
-                  <TableCell className="text-center">{member.completedDays}</TableCell>
-                  <TableCell className="text-right font-medium">{member.avgHoursPerCompletedDay.toFixed(1)}h</TableCell>
+                  <TableCell className="text-center">{member.halfDays}</TableCell>
+                  <TableCell className="text-center">{member.absentDays}</TableCell>
                   <TableCell className="text-center">
                     <Button
                       variant="ghost"
