@@ -220,7 +220,7 @@ export async function apiRequest<T = any>(
     throw new ApiError('Network error. Please try again.', 0);
   }
 
-  if (res.status === 401 && retry) {
+  if ((res.status === 401 || res.status === 403) && retry) {
     const refreshed = await refreshAccessToken();
     if (refreshed) {
       return apiRequest<T>(endpoint, options, false);
