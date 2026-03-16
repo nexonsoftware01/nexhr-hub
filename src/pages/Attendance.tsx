@@ -10,9 +10,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Attendance() {
   const [loading, setLoading] = useState(false);
+  const [activePunch, setActivePunch] = useState<'in' | 'out' | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [result, setResult] = useState<PunchResponse | null>(null);
-  const [punchedIn, setPunchedIn] = useState(false);
   const [registeringPasskey, setRegisteringPasskey] = useState(false);
   const [passkeyReady, setPasskeyReady] = useState<boolean | null>(null);
   const { toast } = useToast();
@@ -64,6 +64,7 @@ export default function Attendance() {
 
   const handlePunch = async (type: 'in' | 'out') => {
     setLoading(true);
+    setActivePunch(type);
     setResult(null);
     try {
       const challengeRes = await passkeyApi.challenge();
@@ -74,7 +75,6 @@ export default function Attendance() {
       const res = type === 'in' ? await attendanceApi.punchIn(payload) : await attendanceApi.punchOut(payload);
       setResult(res.data);
       if (res.data.status === 'ACCEPTED') {
-        setPunchedIn(type === 'in');
         toast({ title: type === 'in' ? 'Punched In!' : 'Punched Out!', description: res.data.message });
       } else {
         toast({ title: 'Punch Rejected', description: res.data.message, variant: 'destructive' });
@@ -91,6 +91,7 @@ export default function Attendance() {
       }
     } finally {
       setLoading(false);
+      setActivePunch(null);
     }
   };
 
@@ -168,7 +169,7 @@ export default function Attendance() {
         >
           <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-success/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-success/10 text-success mb-4 transition-transform group-hover:scale-110">
-            {loading && !punchedIn ? <Loader2 className="h-6 w-6 animate-spin" /> : <LogIn className="h-6 w-6" />}
+            {activePunch === 'in' ? <Loader2 className="h-6 w-6 animate-spin" /> : <LogIn className="h-6 w-6" />}
           </div>
           <p className="font-semibold text-card-foreground text-lg">Punch In</p>
           <p className="text-xs text-muted-foreground mt-1">Start your workday</p>
@@ -182,7 +183,7 @@ export default function Attendance() {
         >
           <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-accent/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent mb-4 transition-transform group-hover:scale-110">
-            {loading && punchedIn ? <Loader2 className="h-6 w-6 animate-spin" /> : <LogOut className="h-6 w-6" />}
+            {activePunch === 'out' ? <Loader2 className="h-6 w-6 animate-spin" /> : <LogOut className="h-6 w-6" />}
           </div>
           <p className="font-semibold text-card-foreground text-lg">Punch Out</p>
           <p className="text-xs text-muted-foreground mt-1">End your workday</p>

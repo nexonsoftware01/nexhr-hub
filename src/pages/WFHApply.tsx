@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function WFHApply() {
   const [date, setDate] = useState<Date>();
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<WfhResponse | null>(null);
@@ -98,7 +99,7 @@ export default function WFHApply() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Date</label>
-          <Popover>
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" className={cn('w-full justify-start text-left font-normal rounded-xl h-12', !date && 'text-muted-foreground')}>
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -109,7 +110,7 @@ export default function WFHApply() {
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={setDate}
+                onSelect={(d) => { setDate(d); setCalendarOpen(false); }}
                 disabled={d => d < new Date(new Date().setHours(0, 0, 0, 0))}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
