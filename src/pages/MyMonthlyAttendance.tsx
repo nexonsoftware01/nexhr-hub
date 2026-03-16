@@ -3,7 +3,7 @@ import { attendanceApi, MonthlyAttendance } from '@/lib/api';
 import { StatCard } from '@/components/StatCard';
 import { PageHeader } from '@/components/PageHeader';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, BarChart3, CheckCircle, Loader2 } from 'lucide-react';
+import { Calendar, Clock, BarChart3, CheckCircle, Loader2, AlertTriangle, ClockAlert } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -50,9 +50,9 @@ export default function MyMonthlyAttendance() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard title="Present Days" value={data.presentDays} icon={CheckCircle} iconClassName="bg-success/10 text-success" />
-            <StatCard title="Completed Days" value={data.completedDays} icon={Calendar} iconClassName="bg-info/10 text-info" />
-            <StatCard title="Total Hours" value={(data.totalWorkedMinutes / 60).toFixed(1)} subtitle="hours worked" icon={Clock} iconClassName="bg-accent/10 text-accent" />
-            <StatCard title="Avg Hours/Day" value={data.avgHoursPerCompletedDay.toFixed(1)} subtitle="per completed day" icon={BarChart3} iconClassName="bg-warning/10 text-warning" />
+            <StatCard title="Half Days" value={data.halfDays} icon={ClockAlert} iconClassName="bg-warning/10 text-warning" />
+            <StatCard title="Absent Days" value={data.absentDays} icon={AlertTriangle} iconClassName="bg-destructive/10 text-destructive" />
+            <StatCard title="Total Hours" value={(data.totalWorkedMinutes / 60).toFixed(1)} subtitle="hours worked" icon={Clock} iconClassName="bg-info/10 text-info" />
           </div>
 
           {data.days.length > 0 ? (
@@ -63,6 +63,7 @@ export default function MyMonthlyAttendance() {
                     <TableHead>Date</TableHead>
                     <TableHead>Punch In</TableHead>
                     <TableHead>Punch Out</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
                     <TableHead className="text-right">Hours</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -96,6 +97,18 @@ export default function MyMonthlyAttendance() {
             timeZone: 'Asia/Kolkata'
           })
         : '—'}
+    </TableCell>
+
+    <TableCell className="text-center">
+      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+        day.status === 'PRESENT'
+          ? 'bg-success/10 text-success'
+          : day.status === 'HALF_DAY'
+            ? 'bg-warning/10 text-warning'
+            : 'bg-destructive/10 text-destructive'
+      }`}>
+        {day.status === 'PRESENT' ? 'Present' : day.status === 'HALF_DAY' ? 'Half Day' : 'Absent'}
+      </span>
     </TableCell>
 
     <TableCell className="text-right font-medium">
