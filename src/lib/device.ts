@@ -87,7 +87,6 @@ export async function createPasskeyCredential(options: PasskeyRegistrationOption
       { type: 'public-key', alg: -7 },  // ES256
     ],
     authenticatorSelection: {
-      authenticatorAttachment: 'platform',
       userVerification: 'preferred',
       residentKey: 'preferred',
     },
