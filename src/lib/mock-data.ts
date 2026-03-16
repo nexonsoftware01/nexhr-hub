@@ -43,19 +43,26 @@ function getUserByEmail(email: string): User {
 }
 
 // --- Generate attendance days ---
+function determineStatus(totalWorkedMinutes: number): 'PRESENT' | 'HALF_DAY' | 'ABSENT' {
+  if (totalWorkedMinutes >= 540) return 'PRESENT';   // 9 hours
+  if (totalWorkedMinutes >= 300) return 'HALF_DAY';   // 5 hours
+  return 'ABSENT';
+}
+
 function generateDays(year: number, month: number, count: number) {
   const days = [];
   for (let d = 1; d <= count && d <= 28; d++) {
     const date = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const dayOfWeek = new Date(year, month - 1, d).getDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) continue; // skip weekends
-    const hrs = 7 + Math.random() * 3;
+    const hrs = 4 + Math.random() * 7; // range 4-11 hrs to generate all statuses
     const mins = Math.round(hrs * 60);
     days.push({
       date,
       punchInTime: `${date}T09:${String(Math.floor(Math.random() * 30)).padStart(2, '0')}:00`,
       punchOutTime: `${date}T${String(17 + Math.floor(Math.random() * 2)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:00`,
       totalWorkedMinutes: mins,
+      status: determineStatus(mins),
     });
     if (days.length >= count) break;
   }
@@ -145,11 +152,10 @@ export const mockAttendanceApi = {
     const totalMinutes = days.reduce((s, d) => s + d.totalWorkedMinutes, 0);
     const data: MonthlyAttendance = {
       year: y, month: m,
-      presentDays: days.length,
-      completedDays: days.length - 1,
+      presentDays: days.filter(d => d.status === 'PRESENT').length,
+      halfDays: days.filter(d => d.status === 'HALF_DAY').length,
+      absentDays: days.filter(d => d.status === 'ABSENT').length,
       totalWorkedMinutes: totalMinutes,
-      avgHoursPerCompletedDay: Math.round((totalMinutes / 60 / Math.max(days.length - 1, 1)) * 100) / 100,
-      avgHoursPerCalendarDay: Math.round((totalMinutes / 60 / 30) * 100) / 100,
       days,
     };
     return mockOk(data, 'Monthly attendance fetched');
@@ -161,9 +167,9 @@ export const mockAttendanceApi = {
       name: u.name,
       email: u.email,
       presentDays: 12 + Math.floor(Math.random() * 8),
-      completedDays: 11 + Math.floor(Math.random() * 7),
+      halfDays: 1 + Math.floor(Math.random() * 4),
+      absentDays: Math.floor(Math.random() * 3),
       totalWorkedMinutes: 3000 + Math.floor(Math.random() * 2000),
-      avgHoursPerCompletedDay: Math.round((4 + Math.random() * 4) * 100) / 100,
     }));
     return mockOk(team, 'Team monthly attendance fetched');
   },
@@ -175,11 +181,10 @@ export const mockAttendanceApi = {
     const totalMinutes = days.reduce((s, d) => s + d.totalWorkedMinutes, 0);
     const data: MonthlyAttendance = {
       year: y, month: m,
-      presentDays: days.length,
-      completedDays: days.length - 1,
+      presentDays: days.filter(d => d.status === 'PRESENT').length,
+      halfDays: days.filter(d => d.status === 'HALF_DAY').length,
+      absentDays: days.filter(d => d.status === 'ABSENT').length,
       totalWorkedMinutes: totalMinutes,
-      avgHoursPerCompletedDay: Math.round((totalMinutes / 60 / Math.max(days.length - 1, 1)) * 100) / 100,
-      avgHoursPerCalendarDay: Math.round((totalMinutes / 60 / 30) * 100) / 100,
       days,
     };
     return mockOk(data, 'Monthly attendance fetched');
