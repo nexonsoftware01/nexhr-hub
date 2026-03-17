@@ -90,8 +90,8 @@ export default function UsersPage() {
             </div>
           </div>
         </div>
-        <div className="relative sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative sm:w-72 self-center">
+          <Search className="absolute left-3 top-0 bottom-0 my-auto h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by name or email..."
             value={search}

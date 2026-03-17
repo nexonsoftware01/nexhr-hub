@@ -15,7 +15,7 @@ export function DashboardLayout() {
   return (
     <div className="flex min-h-screen w-full bg-background">
       {/* Desktop sidebar */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block sticky top-0 h-dvh">
         <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       </div>
 
