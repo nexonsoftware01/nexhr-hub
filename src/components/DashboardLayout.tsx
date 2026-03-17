@@ -66,7 +66,7 @@ export function DashboardLayout() {
       </button>
 
       {bellOpen && (
-        <div className="absolute right-0 top-12 w-80 sm:w-96 rounded-2xl border border-border bg-card shadow-lg z-50 overflow-hidden">
+        <div className="fixed right-4 top-14 w-80 sm:w-96 rounded-2xl border border-border bg-card shadow-lg overflow-hidden" style={{ zIndex: 9999 }}>
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/20">
             <h3 className="font-semibold text-card-foreground text-sm">Announcements</h3>
             <div className="flex items-center gap-2">
