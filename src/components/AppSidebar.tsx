@@ -31,12 +31,12 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { title: 'My Profile', to: '/profile', icon: UserCircle },
   { title: 'Punch In/Out', to: '/attendance', icon: Clock, end: true },
   { title: 'My Reports', to: '/attendance/my-monthly', icon: BarChart3 },
   { title: 'Team Reports', to: '/attendance/team', icon: Users },
   { title: 'Apply WFH', to: '/wfh/apply', icon: Home },
   { title: 'Apply Leave', to: '/leave/apply', icon: CalendarOff },
+  { title: 'My Profile', to: '/profile', icon: UserCircle },
   { title: 'Manage Users', to: '/users', icon: UserPlus, roles: ['DIRECTOR', 'HR'] },
   { title: 'Payroll', to: '/payroll', icon: FileSpreadsheet, roles: ['DIRECTOR'] },
 ];
@@ -57,7 +57,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-sidebar-primary/[0.03] via-transparent to-sidebar-primary/[0.02]" />
 
       {/* Logo */}
-      <div className="relative flex h-[72px] items-center gap-3 border-b border-sidebar-border/60 px-4">
+      <NavLink to="/dashboard" className="relative flex h-[72px] items-center gap-3 border-b border-sidebar-border/60 px-4 hover:opacity-90 transition-opacity">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/20 transition-transform duration-200 hover:scale-105">
           <Building2 className="h-5 w-5" />
         </div>
@@ -71,7 +71,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
             </p>
           </div>
         )}
-      </div>
+      </NavLink>
 
       {/* Section label */}
       {!collapsed && (
