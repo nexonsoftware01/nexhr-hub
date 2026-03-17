@@ -18,6 +18,8 @@ import WFHApply from "./pages/WFHApply";
 import LeaveApply from "./pages/LeaveApply";
 import Payroll from "./pages/Payroll";
 import Profile from "./pages/Profile";
+import AttendanceRegularization from "./pages/AttendanceRegularization";
+import RegularizationApprovals from "./pages/RegularizationApprovals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +50,8 @@ const App = () => (
               } />
               <Route path="/wfh/apply" element={<WFHApply />} />
               <Route path="/leave/apply" element={<LeaveApply />} />
+              <Route path="/attendance/regularization" element={<AttendanceRegularization />} />
+              <Route path="/attendance/regularization/approvals" element={<RegularizationApprovals />} />
               <Route path="/payroll" element={
                 <ProtectedRoute allowedRoles={['DIRECTOR']}>
                   <Payroll />

@@ -188,6 +188,23 @@ export interface WfhResponse {
   salaryDeductionApplicable: boolean;
 }
 
+export interface RegularizationResponse {
+  id: number;
+  date: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  reason: string;
+  requestedPunchIn: string;
+  requestedPunchOut: string;
+  originalPunchIn: string | null;
+  originalPunchOut: string | null;
+  originalStatus: string | null;
+  employeeName: string | null;
+  employeeEmail: string | null;
+  createdAt: string;
+  actionedAt: string | null;
+  managerComment: string | null;
+}
+
 export interface PasskeyRegistrationOptionsResponse {
   challenge: string;
   rpId: string;
@@ -289,6 +306,17 @@ export async function apiRequest<T = any>(
 
 export const profileApi = {
   me: () => apiRequest<MyProfile>('/api/users/me'),
+};
+
+export const regularizationApi = {
+  apply: (data: { date: string; punchIn: string; punchOut: string; reason: string }) =>
+    apiRequest<RegularizationResponse>('/api/regularization/apply', { method: 'POST', body: JSON.stringify(data) }),
+  myRequests: () =>
+    apiRequest<RegularizationResponse[]>('/api/regularization/my-requests'),
+  pending: () =>
+    apiRequest<RegularizationResponse[]>('/api/regularization/pending'),
+  action: (data: { id: number; action: 'APPROVE' | 'REJECT'; comment?: string }) =>
+    apiRequest<RegularizationResponse>('/api/regularization/action', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export const authApi = USE_MOCK ? {
