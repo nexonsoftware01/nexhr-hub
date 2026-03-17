@@ -188,6 +188,15 @@ export interface WfhResponse {
   salaryDeductionApplicable: boolean;
 }
 
+export interface AnnouncementResponse {
+  id: number;
+  title: string;
+  content: string;
+  createdByName: string;
+  createdByRole: string;
+  createdAt: string;
+}
+
 export interface RegularizationResponse {
   id: number;
   date: string;
@@ -424,16 +433,30 @@ export const passkeyApi = USE_MOCK ? {
 
 export const wfhApi = USE_MOCK ? {
   apply: async (data: { date: string; reason: string }) => (await getMocks()).mockWfhApi.apply(data),
+  myRequests: async () => ({ success: true, message: 'Mock', data: [] as WfhResponse[] }),
 } : {
   apply: (data: { date: string; reason: string }) =>
     apiRequest<WfhResponse>('/api/wfh/apply', { method: 'POST', body: JSON.stringify(data) }),
+  myRequests: () =>
+    apiRequest<WfhResponse[]>('/api/wfh/my-requests'),
 };
 
 export const leaveApi = USE_MOCK ? {
   apply: async (data: { date: string; reason: string }) => (await getMocks()).mockLeaveApi.apply(data),
+  myRequests: async () => ({ success: true, message: 'Mock', data: [] as LeaveResponse[] }),
 } : {
   apply: (data: { date: string; reason: string }) =>
     apiRequest<LeaveResponse>('/api/leave/apply', { method: 'POST', body: JSON.stringify(data) }),
+  myRequests: () =>
+    apiRequest<LeaveResponse[]>('/api/leave/my-requests'),
+};
+
+export const announcementApi = {
+  list: () => apiRequest<AnnouncementResponse[]>('/api/announcements'),
+  create: (data: { title: string; content: string }) =>
+    apiRequest<AnnouncementResponse>('/api/announcements', { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: number) =>
+    apiRequest('/api/announcements/' + id, { method: 'DELETE' }),
 };
 
 export const payrollApi = USE_MOCK ? {

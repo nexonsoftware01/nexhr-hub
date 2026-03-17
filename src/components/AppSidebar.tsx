@@ -16,6 +16,8 @@ import {
   UserCircle,
   FileEdit,
   ClipboardCheck,
+  History,
+  Megaphone,
 } from 'lucide-react';
 
 interface AppSidebarProps {
@@ -38,8 +40,10 @@ const navItems: NavItem[] = [
   { title: 'Team Reports', to: '/attendance/team', icon: Users },
   { title: 'Apply WFH', to: '/wfh/apply', icon: Home },
   { title: 'Apply Leave', to: '/leave/apply', icon: CalendarOff },
+  { title: 'Request History', to: '/requests/history', icon: History },
   { title: 'Attendance Correction', to: '/attendance/regularization', icon: FileEdit, end: true },
   { title: 'Correction Approvals', to: '/attendance/regularization/approvals', icon: ClipboardCheck },
+  { title: 'Announcements', to: '/announcements', icon: Megaphone },
   { title: 'My Profile', to: '/profile', icon: UserCircle },
   { title: 'Manage Users', to: '/users', icon: UserPlus, roles: ['DIRECTOR', 'HR'] },
   { title: 'Payroll', to: '/payroll', icon: FileSpreadsheet, roles: ['DIRECTOR'] },
