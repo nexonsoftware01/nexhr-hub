@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   Building2,
   FileSpreadsheet,
+  UserCircle,
 } from 'lucide-react';
 
 interface AppSidebarProps {
@@ -30,6 +31,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
+  { title: 'My Profile', to: '/profile', icon: UserCircle },
   { title: 'Punch In/Out', to: '/attendance', icon: Clock, end: true },
   { title: 'My Reports', to: '/attendance/my-monthly', icon: BarChart3 },
   { title: 'Team Reports', to: '/attendance/team', icon: Users },

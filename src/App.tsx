@@ -17,6 +17,7 @@ import UsersPage from "./pages/Users";
 import WFHApply from "./pages/WFHApply";
 import LeaveApply from "./pages/LeaveApply";
 import Payroll from "./pages/Payroll";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
             {/* Protected routes with dashboard layout */}
             <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/attendance" element={<Attendance />} />
               <Route path="/attendance/my-monthly" element={<MyMonthlyAttendance />} />
               <Route path="/attendance/team" element={<TeamAttendance />} />

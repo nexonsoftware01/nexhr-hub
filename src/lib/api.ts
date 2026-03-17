@@ -43,6 +43,26 @@ export interface User {
   monthlySalary: number | null;
 }
 
+export interface MyProfile {
+  userId: number;
+  name: string;
+  email: string;
+  role: string;
+  memberSince: string;
+  managerName: string | null;
+  managerEmail: string | null;
+  currentMonthYear: number;
+  currentMonthMonth: number;
+  presentDays: number;
+  halfDayCount: number;
+  absentCount: number;
+  totalWorkedMinutes: number;
+  leavesTakenThisMonth: number;
+  wfhTakenThisMonth: number;
+  leavesThisYear: number;
+  wfhThisYear: number;
+}
+
 // Normalize backend values to nullable number
 function toNullableNumber(value: any): number | null {
   if (value === null || value === undefined || value === '') return null;
@@ -266,6 +286,10 @@ export async function apiRequest<T = any>(
 }
 
 // --- Exported API objects: mock or real based on USE_MOCK flag ---
+
+export const profileApi = {
+  me: () => apiRequest<MyProfile>('/api/users/me'),
+};
 
 export const authApi = USE_MOCK ? {
   sendOtp: async (email: string) => (await getMocks()).mockAuthApi.sendOtp(email),
