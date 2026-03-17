@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { AppSidebar } from './AppSidebar';
 import { Menu, Building2, Bell, X, Clock, User } from 'lucide-react';
@@ -64,78 +65,79 @@ export function DashboardLayout() {
           </span>
         )}
       </button>
+    </div>
+  );
 
-      {bellOpen && (
-        <>
-          <div className="fixed inset-0" style={{ zIndex: 9998 }} onClick={() => setBellOpen(false)} />
-          <div className="fixed right-4 top-14 w-80 sm:w-96 rounded-2xl border border-border bg-card shadow-lg overflow-hidden" style={{ zIndex: 9999 }}>
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/20">
-            <h3 className="font-semibold text-card-foreground text-sm">Announcements</h3>
-            <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
-                <button onClick={markAllRead} className="text-xs text-accent hover:underline font-medium">
-                  Mark all read
-                </button>
-              )}
-              <button onClick={() => setBellOpen(false)} className="text-muted-foreground hover:text-card-foreground">
-                <X className="h-4 w-4" />
+  const BellDropdown = bellOpen ? createPortal(
+    <>
+      <div className="fixed inset-0" style={{ zIndex: 99998 }} onClick={() => setBellOpen(false)} />
+      <div className="fixed right-4 top-14 w-80 sm:w-96 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden" style={{ zIndex: 99999 }}>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/20">
+          <h3 className="font-semibold text-card-foreground text-sm">Announcements</h3>
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <button onClick={markAllRead} className="text-xs text-accent hover:underline font-medium">
+                Mark all read
               </button>
-            </div>
+            )}
+            <button onClick={() => setBellOpen(false)} className="text-muted-foreground hover:text-card-foreground">
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <div className="max-h-80 overflow-y-auto">
-            {announcements.length > 0 ? (
-              announcements.slice(0, 10).map(a => (
-                <div
-                  key={a.id}
-                  className={`px-4 py-3 border-b border-border/50 last:border-0 hover:bg-muted/20 transition-colors cursor-pointer ${
-                    !readIds.has(a.id) ? 'bg-accent/5' : ''
-                  }`}
-                  onClick={() => {
-                    const newRead = new Set(readIds);
-                    newRead.add(a.id);
-                    setReadIds(newRead);
-                    localStorage.setItem('nexhr_read_announcements', JSON.stringify([...newRead]));
-                    setBellOpen(false);
-                    navigate('/announcements');
-                  }}
-                >
-                  <div className="flex items-start gap-3">
-                    {!readIds.has(a.id) && (
-                      <div className="h-2 w-2 rounded-full bg-accent mt-1.5 shrink-0" />
-                    )}
-                    <div className={`flex-1 min-w-0 ${readIds.has(a.id) ? 'ml-5' : ''}`}>
-                      <p className="text-sm font-semibold text-card-foreground truncate">{a.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{a.content}</p>
-                      <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground/60">
-                        <span className="flex items-center gap-0.5"><User className="h-2.5 w-2.5" />{a.createdByName}</span>
-                        <span className="flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                      </div>
+        </div>
+        <div className="max-h-80 overflow-y-auto">
+          {announcements.length > 0 ? (
+            announcements.slice(0, 10).map(a => (
+              <div
+                key={a.id}
+                className={`px-4 py-3 border-b border-border/50 last:border-0 hover:bg-muted/20 transition-colors cursor-pointer ${
+                  !readIds.has(a.id) ? 'bg-accent/5' : ''
+                }`}
+                onClick={() => {
+                  const newRead = new Set(readIds);
+                  newRead.add(a.id);
+                  setReadIds(newRead);
+                  localStorage.setItem('nexhr_read_announcements', JSON.stringify([...newRead]));
+                  setBellOpen(false);
+                  navigate('/announcements');
+                }}
+              >
+                <div className="flex items-start gap-3">
+                  {!readIds.has(a.id) && (
+                    <div className="h-2 w-2 rounded-full bg-accent mt-1.5 shrink-0" />
+                  )}
+                  <div className={`flex-1 min-w-0 ${readIds.has(a.id) ? 'ml-5' : ''}`}>
+                    <p className="text-sm font-semibold text-card-foreground truncate">{a.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{a.content}</p>
+                    <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground/60">
+                      <span className="flex items-center gap-0.5"><User className="h-2.5 w-2.5" />{a.createdByName}</span>
+                      <span className="flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
                     </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
-                <Bell className="h-6 w-6 mb-2 opacity-30" />
-                <p className="text-sm">No announcements</p>
               </div>
-            )}
-          </div>
-          {announcements.length > 0 && (
-            <div className="px-4 py-2.5 border-t border-border bg-muted/10">
-              <button
-                onClick={() => { setBellOpen(false); navigate('/announcements'); }}
-                className="text-xs text-accent hover:underline font-medium w-full text-center"
-              >
-                View all announcements
-              </button>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+              <Bell className="h-6 w-6 mb-2 opacity-30" />
+              <p className="text-sm">No announcements</p>
             </div>
           )}
         </div>
-        </>
-      )}
-    </div>
-  );
+        {announcements.length > 0 && (
+          <div className="px-4 py-2.5 border-t border-border bg-muted/10">
+            <button
+              onClick={() => { setBellOpen(false); navigate('/announcements'); }}
+              className="text-xs text-accent hover:underline font-medium w-full text-center"
+            >
+              View all announcements
+            </button>
+          </div>
+        )}
+      </div>
+    </>,
+    document.body
+  ) : null;
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -193,6 +195,7 @@ export function DashboardLayout() {
           <Outlet />
         </main>
       </div>
+      {BellDropdown}
     </div>
   );
 }
