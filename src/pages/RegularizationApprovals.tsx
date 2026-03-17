@@ -31,7 +31,7 @@ export default function RegularizationApprovals() {
       await regularizationApi.action({ id, action, comment: comments[id]?.trim() || undefined });
       toast({
         title: action === 'APPROVE' ? 'Approved' : 'Rejected',
-        description: `Regularization request has been ${action.toLowerCase()}d.`,
+        description: `Correction request has been ${action.toLowerCase()}d.`,
       });
       setRequests(prev => prev.filter(r => r.id !== id));
     } catch (err: any) {
@@ -54,7 +54,7 @@ export default function RegularizationApprovals() {
               <ClipboardCheck className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-primary-foreground">Regularization Approvals</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-primary-foreground">Correction Approvals</h1>
               <p className="text-sm text-primary-foreground/60">Review and action pending requests</p>
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function RegularizationApprovals() {
             <ClipboardCheck className="h-8 w-8 text-muted-foreground/40" />
           </div>
           <p className="text-sm font-medium text-muted-foreground">No pending requests</p>
-          <p className="text-xs text-muted-foreground/60 mt-1">All regularization requests have been actioned</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">All correction requests have been actioned</p>
         </div>
       )}
     </div>

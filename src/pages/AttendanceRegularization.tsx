@@ -10,7 +10,7 @@ import { regularizationApi, RegularizationResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/api-error';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, ClockAlert, Loader2, CheckCircle, Shield, Clock, Send, FileEdit } from 'lucide-react';
+import { CalendarIcon, ClockAlert, Loader2, CheckCircle, Shield, Clock, Send, FileEdit, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AttendanceRegularization() {
@@ -51,18 +51,15 @@ export default function AttendanceRegularization() {
         reason: reason.trim(),
       });
       setResult(res.data);
-      toast({ title: 'Request Submitted', description: 'Your regularization request has been sent to your manager.' });
+      toast({ title: 'Request Submitted', description: 'Your correction request has been sent to your manager.' });
       setDate(undefined); setPunchIn(''); setPunchOut(''); setReason('');
       fetchHistory();
     } catch (err: any) {
-      handleApiError(err, { title: 'Regularization Failed' });
+      handleApiError(err, { title: 'Correction Request Failed' });
     } finally {
       setLoading(false);
     }
   };
-
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 animate-fade-in-up">
@@ -76,7 +73,7 @@ export default function AttendanceRegularization() {
             <FileEdit className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-primary-foreground">Attendance Regularization</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-primary-foreground">Attendance Correction</h1>
             <p className="text-sm text-primary-foreground/60">Request correction for past attendance</p>
           </div>
         </div>
@@ -90,7 +87,7 @@ export default function AttendanceRegularization() {
           </div>
           <div>
             <p className="text-sm font-semibold text-card-foreground">Past Dates Only</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Cannot regularize today or future</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Cannot correct today or future</p>
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 shadow-card flex items-start gap-3">
@@ -121,12 +118,20 @@ export default function AttendanceRegularization() {
           </div>
           <div>
             <h2 className="font-semibold text-card-foreground">Correction Request</h2>
-            <p className="text-xs text-muted-foreground">Provide the correct punch times for the date</p>
+            <p className="text-xs text-muted-foreground">Enter the actual times you worked on that day</p>
           </div>
         </div>
 
+        {/* Explanation */}
+        <div className="flex items-start gap-3 rounded-xl border border-info/20 bg-info/5 p-3">
+          <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Enter the times you actually started and finished work. For example, if you forgot to punch out but left at 6:30 PM, enter your actual punch-in time and 18:30 as punch-out.
+          </p>
+        </div>
+
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Date</label>
+          <label className="text-sm font-medium text-foreground">Date to correct</label>
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" className={cn('w-full justify-start text-left font-normal rounded-xl h-12', !date && 'text-muted-foreground')}>
@@ -149,7 +154,7 @@ export default function AttendanceRegularization() {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Punch In Time</label>
+            <label className="text-sm font-medium text-foreground">Actual start time</label>
             <Input
               type="time"
               value={punchIn}
@@ -159,7 +164,7 @@ export default function AttendanceRegularization() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Punch Out Time</label>
+            <label className="text-sm font-medium text-foreground">Actual end time</label>
             <Input
               type="time"
               value={punchOut}
@@ -171,11 +176,11 @@ export default function AttendanceRegularization() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Reason</label>
+          <label className="text-sm font-medium text-foreground">Reason for correction</label>
           <Textarea
             value={reason}
             onChange={e => setReason(e.target.value)}
-            placeholder="Why do you need this correction? e.g., forgot to punch out, network issue..."
+            placeholder="e.g., Forgot to punch out, network issue during punch-in, GPS was unavailable..."
             rows={3}
             required
             className="rounded-xl resize-none"
@@ -184,7 +189,7 @@ export default function AttendanceRegularization() {
 
         <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={loading || !date || !punchIn || !punchOut || !reason.trim()}>
           {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Send className="h-5 w-5 mr-2" />}
-          Submit Request
+          Submit Correction Request
         </Button>
       </form>
 
@@ -212,7 +217,7 @@ export default function AttendanceRegularization() {
                 <div className="mt-1"><StatusChip status={result.status} /></div>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Requested Times</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Corrected Times</p>
                 <p className="text-sm font-semibold text-card-foreground mt-1">
                   {result.requestedPunchIn?.substring(11, 16)} — {result.requestedPunchOut?.substring(11, 16)}
                 </p>
@@ -224,7 +229,7 @@ export default function AttendanceRegularization() {
 
       {/* Request history */}
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">My Requests</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">My Correction Requests</h2>
         {historyLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -242,11 +247,11 @@ export default function AttendanceRegularization() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <p className="text-muted-foreground">Requested In</p>
+                    <p className="text-muted-foreground">Corrected In</p>
                     <p className="font-medium text-card-foreground mt-0.5">{req.requestedPunchIn?.substring(11, 16)}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Requested Out</p>
+                    <p className="text-muted-foreground">Corrected Out</p>
                     <p className="font-medium text-card-foreground mt-0.5">{req.requestedPunchOut?.substring(11, 16)}</p>
                   </div>
                   <div>
@@ -272,7 +277,7 @@ export default function AttendanceRegularization() {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/50 mb-3">
               <FileEdit className="h-6 w-6 text-muted-foreground/40" />
             </div>
-            <p className="text-sm text-muted-foreground">No regularization requests yet</p>
+            <p className="text-sm text-muted-foreground">No correction requests yet</p>
           </div>
         )}
       </div>
