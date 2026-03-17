@@ -146,7 +146,7 @@ export interface MonthlyAttendance {
     punchInTime: string;
     punchOutTime: string | null;
     totalWorkedMinutes: number;
-    status: 'PRESENT' | 'HALF_DAY' | 'ABSENT';
+    status: 'PRESENT' | 'HALF_DAY' | 'ABSENT' | 'CHECKED_IN';
   }>;
 }
 
