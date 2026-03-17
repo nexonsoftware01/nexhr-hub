@@ -16,7 +16,6 @@ import {
   UserCircle,
   FileEdit,
   ClipboardCheck,
-  History,
   Megaphone,
 } from 'lucide-react';
 
@@ -30,18 +29,18 @@ interface NavItem {
   to: string;
   icon: React.ElementType;
   roles?: string[];
+  excludeRoles?: string[];
   end?: boolean;
 }
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { title: 'Punch In/Out', to: '/attendance', icon: Clock, end: true },
-  { title: 'My Reports', to: '/attendance/my-monthly', icon: BarChart3 },
+  { title: 'Punch In/Out', to: '/attendance', icon: Clock, end: true, excludeRoles: ['DIRECTOR'] },
+  { title: 'My Reports', to: '/attendance/my-monthly', icon: BarChart3, excludeRoles: ['DIRECTOR'] },
   { title: 'Team Reports', to: '/attendance/team', icon: Users },
-  { title: 'Apply WFH', to: '/wfh/apply', icon: Home },
-  { title: 'Apply Leave', to: '/leave/apply', icon: CalendarOff },
-  { title: 'Request History', to: '/requests/history', icon: History },
-  { title: 'Attendance Correction', to: '/attendance/regularization', icon: FileEdit, end: true },
+  { title: 'Apply WFH', to: '/wfh/apply', icon: Home, excludeRoles: ['DIRECTOR'] },
+  { title: 'Apply Leave', to: '/leave/apply', icon: CalendarOff, excludeRoles: ['DIRECTOR'] },
+  { title: 'Attendance Correction', to: '/attendance/regularization', icon: FileEdit, end: true, excludeRoles: ['DIRECTOR'] },
   { title: 'Correction Approvals', to: '/attendance/regularization/approvals', icon: ClipboardCheck },
   { title: 'Announcements', to: '/announcements', icon: Megaphone },
   { title: 'My Profile', to: '/profile', icon: UserCircle },
@@ -52,9 +51,11 @@ const navItems: NavItem[] = [
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const { user, logout } = useAuth();
 
-  const filteredItems = navItems.filter(
-    item => !item.roles || (user && item.roles.includes(user.role))
-  );
+  const filteredItems = navItems.filter(item => {
+    if (item.roles && (!user || !item.roles.includes(user.role))) return false;
+    if (item.excludeRoles && user && item.excludeRoles.includes(user.role)) return false;
+    return true;
+  });
 
   return (
     <aside className={cn(

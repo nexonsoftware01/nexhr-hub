@@ -1,10 +1,11 @@
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { profileApi, MyProfile } from '@/lib/api';
+import { profileApi, leaveApi, wfhApi, MyProfile, LeaveResponse, WfhResponse } from '@/lib/api';
 import { StatusChip } from '@/components/StatusChip';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   User, Mail, Shield, Calendar, Clock, CheckCircle, ClockAlert, AlertTriangle,
-  Home, CalendarOff, TrendingUp, Briefcase, Loader2, UserCheck
+  Home, CalendarOff, TrendingUp, Briefcase, Loader2, UserCheck, History
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -153,6 +154,15 @@ export default function Profile() {
         <StatTile label={`WFH (${profile.currentMonthYear})`} value={String(profile.wfhThisYear)} icon={Home} color="success" />
       </motion.div>
 
+      {/* Request History */}
+      <motion.div variants={item}>
+        <h2 className="text-lg font-semibold text-foreground">Request History</h2>
+      </motion.div>
+
+      <motion.div variants={item}>
+        <RequestHistorySection />
+      </motion.div>
+
       {/* Policy reminder */}
       <motion.div variants={item} className="flex items-start gap-3 rounded-xl border border-info/20 bg-info/5 p-4">
         <Shield className="h-5 w-5 text-info shrink-0 mt-0.5" />
@@ -166,6 +176,70 @@ export default function Profile() {
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+function RequestHistorySection() {
+  type HistoryItem = { id: number; type: 'LEAVE' | 'WFH'; date: string; status: string; reason: string; salaryDeduction: boolean };
+  const [items, setItems] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'ALL' | 'LEAVE' | 'WFH'>('ALL');
+
+  useEffect(() => {
+    Promise.all([
+      leaveApi.myRequests().catch(() => ({ data: [] as LeaveResponse[] })),
+      wfhApi.myRequests().catch(() => ({ data: [] as WfhResponse[] })),
+    ]).then(([leaveRes, wfhRes]) => {
+      const leaves: HistoryItem[] = (leaveRes.data || []).map(l => ({ id: l.id, type: 'LEAVE' as const, date: l.date, status: l.status, reason: l.reason, salaryDeduction: l.salaryDeductionApplicable }));
+      const wfhs: HistoryItem[] = (wfhRes.data || []).map(w => ({ id: w.id, type: 'WFH' as const, date: w.date, status: w.status, reason: w.reason, salaryDeduction: w.salaryDeductionApplicable }));
+      setItems([...leaves, ...wfhs].sort((a, b) => b.date.localeCompare(a.date)));
+    }).finally(() => setLoading(false));
+  }, []);
+
+  const filtered = filter === 'ALL' ? items : items.filter(i => i.type === filter);
+
+  if (loading) {
+    return <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-1 bg-muted/50 rounded-xl p-1 border border-border/50 w-fit">
+        {(['ALL', 'LEAVE', 'WFH'] as const).map(f => (
+          <button key={f} onClick={() => setFilter(f)} className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${filter === f ? 'bg-card shadow-sm text-card-foreground' : 'text-muted-foreground hover:text-card-foreground'}`}>
+            {f === 'ALL' ? `All (${items.length})` : f === 'LEAVE' ? `Leave (${items.filter(i => i.type === 'LEAVE').length})` : `WFH (${items.filter(i => i.type === 'WFH').length})`}
+          </button>
+        ))}
+      </div>
+      {filtered.length > 0 ? (
+        <div className="space-y-2">
+          {filtered.map(req => (
+            <div key={`${req.type}-${req.id}`} className="rounded-xl border border-border bg-card p-4 shadow-card flex items-center gap-4">
+              <div className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 ${req.type === 'LEAVE' ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'}`}>
+                {req.type === 'LEAVE' ? <CalendarOff className="h-4 w-4" /> : <Home className="h-4 w-4" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-card-foreground">{req.type === 'LEAVE' ? 'Leave' : 'WFH'}</p>
+                  <StatusChip status={req.status} />
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">{new Date(req.date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} — {req.reason}</p>
+              </div>
+              {req.salaryDeduction && (
+                <span className="text-xs text-warning font-semibold flex items-center gap-1 shrink-0">
+                  <AlertTriangle className="h-3 w-3" />Deducted
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-10 text-center">
+          <History className="h-6 w-6 text-muted-foreground/40 mb-2" />
+          <p className="text-sm text-muted-foreground">No requests found</p>
+        </div>
+      )}
+    </div>
   );
 }
 
