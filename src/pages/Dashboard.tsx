@@ -23,7 +23,7 @@ export default function Dashboard() {
   const month = now.getMonth() + 1;
 
   const { data: monthlyData, isLoading } = useQuery({
-    queryKey: ['my-monthly-attendance', year, month],
+    queryKey: ['my-monthly-attendance', user?.userId, year, month],
     queryFn: () => attendanceApi.myMonthly(year, month),
     enabled: !!user,
     staleTime: 5 * 60 * 1000,

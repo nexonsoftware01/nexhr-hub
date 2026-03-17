@@ -24,9 +24,10 @@ export default function Profile() {
   const { user: authUser } = useAuth();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['my-profile'],
+    queryKey: ['my-profile', authUser?.userId],
     queryFn: () => profileApi.me(),
     staleTime: 2 * 60 * 1000,
+    enabled: !!authUser,
   });
 
   if (isLoading) {
