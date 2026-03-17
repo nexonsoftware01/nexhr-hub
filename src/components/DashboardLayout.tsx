@@ -29,27 +29,24 @@ export function DashboardLayout() {
       .catch(() => {});
   }, []);
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
-        setBellOpen(false);
-      }
-    }
-    if (bellOpen) document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [bellOpen]);
+  // Outside click is handled by the backdrop div in the portal
 
   const unreadCount = announcements.filter(a => !readIds.has(a.id)).length;
 
-  const markAllRead = () => {
+  const markAllRead = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const allIds = new Set(announcements.map(a => a.id));
-    setReadIds(allIds);
+    setReadIds(new Set(allIds));
     localStorage.setItem('nexhr_read_announcements', JSON.stringify([...allIds]));
   };
 
   const handleBellClick = () => {
     setBellOpen(prev => !prev);
+  };
+
+  const goToAnnouncements = () => {
+    setBellOpen(false);
+    navigate('/announcements');
   };
 
   const BellButton = (
@@ -80,7 +77,7 @@ export function DashboardLayout() {
                 Mark all read
               </button>
             )}
-            <button onClick={() => setBellOpen(false)} className="text-muted-foreground hover:text-card-foreground">
+            <button onClick={(e) => { e.stopPropagation(); setBellOpen(false); }} className="text-muted-foreground hover:text-card-foreground">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -93,13 +90,13 @@ export function DashboardLayout() {
                 className={`px-4 py-3 border-b border-border/50 last:border-0 hover:bg-muted/20 transition-colors cursor-pointer ${
                   !readIds.has(a.id) ? 'bg-accent/5' : ''
                 }`}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   const newRead = new Set(readIds);
                   newRead.add(a.id);
-                  setReadIds(newRead);
+                  setReadIds(new Set(newRead));
                   localStorage.setItem('nexhr_read_announcements', JSON.stringify([...newRead]));
-                  setBellOpen(false);
-                  navigate('/announcements');
+                  goToAnnouncements();
                 }}
               >
                 <div className="flex items-start gap-3">
@@ -127,7 +124,7 @@ export function DashboardLayout() {
         {announcements.length > 0 && (
           <div className="px-4 py-2.5 border-t border-border bg-muted/10">
             <button
-              onClick={() => { setBellOpen(false); navigate('/announcements'); }}
+              onClick={(e) => { e.stopPropagation(); goToAnnouncements(); }}
               className="text-xs text-accent hover:underline font-medium w-full text-center"
             >
               View all announcements
