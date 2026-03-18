@@ -73,9 +73,11 @@ export default function TeamMemberAttendance() {
                             ? 'bg-success/10 text-success'
                             : day.status === 'HALF_DAY'
                               ? 'bg-warning/10 text-warning'
-                              : 'bg-destructive/10 text-destructive'
+                              : day.status === 'CHECKED_IN'
+                                ? 'bg-info/10 text-info'
+                                : 'bg-destructive/10 text-destructive'
                         }`}>
-                          {day.status === 'PRESENT' ? 'Present' : day.status === 'HALF_DAY' ? 'Half Day' : 'Absent'}
+                          {day.status === 'PRESENT' ? 'Present' : day.status === 'HALF_DAY' ? 'Half Day' : day.status === 'CHECKED_IN' ? 'Checked In' : 'Absent'}
                         </span>
                       </TableCell>
                       <TableCell className="text-right font-medium">{(day.totalWorkedMinutes / 60).toFixed(1)}h</TableCell>

@@ -43,9 +43,9 @@ const navItems: NavItem[] = [
   { title: 'Attendance Correction', to: '/attendance/regularization', icon: FileEdit, end: true, excludeRoles: ['DIRECTOR'] },
   { title: 'Correction Approvals', to: '/attendance/regularization/approvals', icon: ClipboardCheck },
   { title: 'Announcements', to: '/announcements', icon: Megaphone, roles: ['DIRECTOR', 'HR'] },
-  { title: 'My Profile', to: '/profile', icon: UserCircle },
   { title: 'Manage Users', to: '/users', icon: UserPlus, roles: ['DIRECTOR', 'HR'] },
   { title: 'Payroll', to: '/payroll', icon: FileSpreadsheet, roles: ['DIRECTOR'] },
+  { title: 'My Profile', to: '/profile', icon: UserCircle },
 ];
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
