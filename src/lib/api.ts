@@ -160,13 +160,15 @@ export interface MonthlyAttendance {
   presentDays: number;
   halfDayCount: number;
   absentCount: number;
+  leaveDays: number;
+  wfhDays: number;
   totalWorkedMinutes: number;
   days: Array<{
     date: string;
     punchInTime: string;
     punchOutTime: string | null;
     totalWorkedMinutes: number;
-    status: 'PRESENT' | 'HALF_DAY' | 'ABSENT' | 'CHECKED_IN';
+    status: 'PRESENT' | 'HALF_DAY' | 'ABSENT' | 'CHECKED_IN' | 'LEAVE' | 'WFH';
   }>;
 }
 

@@ -17,6 +17,8 @@ const statusMap: Record<string, ChipVariant> = {
   REJECTED: 'error',
   PENDING: 'warning',
   CHECKED_IN: 'info',
+  LEAVE: 'warning',
+  WFH: 'success',
   DIRECTOR: 'info',
   HR: 'success',
   EMPLOYEE: 'neutral',

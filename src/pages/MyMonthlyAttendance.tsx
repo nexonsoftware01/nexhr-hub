@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { attendanceApi, MonthlyAttendance } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, BarChart3, CheckCircle, Loader2, AlertTriangle, ClockAlert, TrendingUp } from 'lucide-react';
+import { Calendar, Clock, BarChart3, CheckCircle, Loader2, AlertTriangle, ClockAlert, TrendingUp, CalendarOff, Home } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { motion } from 'framer-motion';
@@ -29,6 +29,8 @@ export default function MyMonthlyAttendance() {
   const presentDays = data?.presentDays ?? 0;
   const halfDays = data?.halfDayCount ?? 0;
   const absentDays = data?.absentCount ?? 0;
+  const leaveDays = data?.leaveDays ?? 0;
+  const wfhDays = data?.wfhDays ?? 0;
   const workingDays = presentDays + halfDays + absentDays;
   const avgHours = workingDays > 0 ? (data!.totalWorkedMinutes / 60 / workingDays).toFixed(1) : '—';
 
@@ -79,10 +81,12 @@ export default function MyMonthlyAttendance() {
       ) : data ? (
         <>
           {/* Stat cards */}
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-7">
             <StatTile label="Present" value={String(presentDays)} icon={CheckCircle} color="success" />
             <StatTile label="Half Days" value={String(halfDays)} icon={ClockAlert} color="warning" />
             <StatTile label="Absent" value={String(absentDays)} icon={AlertTriangle} color="destructive" />
+            <StatTile label="Leave" value={String(leaveDays)} icon={CalendarOff} color="warning" />
+            <StatTile label="WFH" value={String(wfhDays)} icon={Home} color="success" />
             <StatTile label="Total Hours" value={`${totalHours}h`} icon={Clock} color="info" />
             <StatTile label="Avg / Day" value={`${avgHours}h`} icon={TrendingUp} color="accent" />
           </div>
@@ -131,15 +135,19 @@ export default function MyMonthlyAttendance() {
                         </TableCell>
                         <TableCell className="text-center">
                           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
-                            day.status === 'PRESENT'
-                              ? 'bg-success/10 text-success border-success/20'
-                              : day.status === 'HALF_DAY'
-                                ? 'bg-warning/10 text-warning border-warning/20'
-                                : day.status === 'CHECKED_IN'
-                                  ? 'bg-info/10 text-info border-info/20'
-                                  : 'bg-destructive/10 text-destructive border-destructive/20'
+                            day.status === 'PRESENT' ? 'bg-success/10 text-success border-success/20'
+                            : day.status === 'WFH' ? 'bg-success/10 text-success border-success/20'
+                            : day.status === 'HALF_DAY' ? 'bg-warning/10 text-warning border-warning/20'
+                            : day.status === 'LEAVE' ? 'bg-warning/10 text-warning border-warning/20'
+                            : day.status === 'CHECKED_IN' ? 'bg-info/10 text-info border-info/20'
+                            : 'bg-destructive/10 text-destructive border-destructive/20'
                           }`}>
-                            {day.status === 'PRESENT' ? 'Present' : day.status === 'HALF_DAY' ? 'Half Day' : day.status === 'CHECKED_IN' ? 'Checked In' : 'Absent'}
+                            {day.status === 'PRESENT' ? 'Present'
+                              : day.status === 'WFH' ? 'WFH'
+                              : day.status === 'HALF_DAY' ? 'Half Day'
+                              : day.status === 'LEAVE' ? 'Leave'
+                              : day.status === 'CHECKED_IN' ? 'Checked In'
+                              : 'Absent'}
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
