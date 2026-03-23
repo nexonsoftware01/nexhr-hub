@@ -61,6 +61,9 @@ export interface MyProfile {
   wfhTakenThisMonth: number;
   leavesThisYear: number;
   wfhThisYear: number;
+  annualLeaveAllowance: number;
+  leavesUsed: number;
+  leavesRemaining: number;
 }
 
 // Normalize backend values to nullable number

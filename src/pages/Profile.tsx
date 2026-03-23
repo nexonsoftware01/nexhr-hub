@@ -143,16 +143,16 @@ export default function Profile() {
         <StatTile label="Avg / Day" value={`${avgHours}h`} icon={TrendingUp} color="accent" />
       </motion.div>
 
-      {/* Leave & WFH */}
+      {/* Leave Balance */}
       <motion.div variants={item}>
-        <h2 className="text-lg font-semibold text-foreground">Leave & WFH</h2>
+        <h2 className="text-lg font-semibold text-foreground">Leave Balance ({profile.currentMonthYear})</h2>
       </motion.div>
 
       <motion.div variants={item} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatTile label={`Leave (${currentMonthName.substring(0, 3)})`} value={String(profile.leavesTakenThisMonth)} icon={CalendarOff} color="warning" />
-        <StatTile label={`WFH (${currentMonthName.substring(0, 3)})`} value={String(profile.wfhTakenThisMonth)} icon={Home} color="success" />
-        <StatTile label={`Leave (${profile.currentMonthYear})`} value={String(profile.leavesThisYear)} icon={CalendarOff} color="warning" />
-        <StatTile label={`WFH (${profile.currentMonthYear})`} value={String(profile.wfhThisYear)} icon={Home} color="success" />
+        <StatTile label="Annual Allowance" value={String(profile.annualLeaveAllowance)} icon={Calendar} color="info" />
+        <StatTile label="Leaves Used" value={String(profile.leavesUsed)} icon={CalendarOff} color="warning" />
+        <StatTile label="Leaves Remaining" value={String(profile.leavesRemaining)} icon={CheckCircle} color="success" />
+        <StatTile label={`WFH (${currentMonthName.substring(0, 3)})`} value={String(profile.wfhTakenThisMonth)} icon={Home} color="accent" />
       </motion.div>
 
       {/* Request History */}
@@ -168,10 +168,12 @@ export default function Profile() {
       <motion.div variants={item} className="flex items-start gap-3 rounded-xl border border-info/20 bg-info/5 p-4">
         <Shield className="h-5 w-5 text-info shrink-0 mt-0.5" />
         <div className="text-sm text-card-foreground">
-          <p className="font-semibold">Monthly Policy</p>
+          <p className="font-semibold">Leave & Attendance Policy</p>
           <ul className="mt-1.5 text-muted-foreground leading-relaxed space-y-1">
-            <li>1 free leave and 1 free WFH per month (no salary deduction)</li>
-            <li>Additional leave: full day salary deducted. Additional WFH: 25% deducted</li>
+            <li>12 casual leaves per year — no salary deduction until exhausted</li>
+            <li>Leaves beyond 12 per year: full day salary deducted</li>
+            <li>1 free WFH per month. Additional WFH: 25% daily salary deducted</li>
+            <li>Client holiday leaves: no deduction (requires manager approval)</li>
             <li>Working 9+ hours = Present. 5–9 hours = Half Day. Less than 5 = Absent</li>
           </ul>
         </div>

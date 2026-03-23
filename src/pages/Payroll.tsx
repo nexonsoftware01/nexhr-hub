@@ -56,7 +56,7 @@ export default function Payroll() {
         <RuleCard icon={Calendar} color="info" title="22 Working Days" sub="Per month baseline" />
         <RuleCard icon={Home} color="success" title="1 Free WFH" sub="Per month, no deduction" />
         <RuleCard icon={AlertTriangle} color="warning" title="25% for Extra WFH" sub="Of daily salary per day" />
-        <RuleCard icon={Clock} color="destructive" title="100% for Extra Leave" sub="Full day salary deducted" />
+        <RuleCard icon={Clock} color="destructive" title="12 Leaves / Year" sub="Beyond 12: full day deducted" />
       </div>
 
       {/* Generate card */}
