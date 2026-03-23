@@ -157,12 +157,11 @@ export default function LeaveApply() {
           </Button>
           <Button
             onClick={() => handleSubmit('client')}
-            variant="outline"
-            className="h-12 rounded-xl text-base gap-2 border-info/30 text-info hover:bg-info/5"
+            className="h-12 rounded-xl text-base gap-2 bg-accent hover:bg-accent/90 text-white"
             disabled={loading !== null || !date || !reason.trim()}
           >
             {loading === 'client' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Globe className="h-5 w-5" />}
-            Client Leave
+            Submit Client Leave
           </Button>
         </div>
       </div>

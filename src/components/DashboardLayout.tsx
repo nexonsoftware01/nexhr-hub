@@ -6,16 +6,17 @@ import { Menu, Building2, Bell, X, Clock, User } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { announcementApi, AnnouncementResponse } from '@/lib/api';
+import { announcementApi, apiRequest, AnnouncementResponse } from '@/lib/api';
 
 export function DashboardLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [announcements, setAnnouncements] = useState<AnnouncementResponse[]>([]);
-  const [readIds, setReadIds] = useState<Set<number>>(() => {
+  const [notifications, setNotifications] = useState<Array<{ id: number; title: string; message: string; createdAt: string }>>([]);
+  const [readIds, setReadIds] = useState<Set<string>>(() => {
     try {
-      const stored = localStorage.getItem('nexhr_read_announcements');
+      const stored = localStorage.getItem('nexhr_read_items');
       return stored ? new Set(JSON.parse(stored)) : new Set();
     } catch { return new Set(); }
   });
@@ -27,17 +28,27 @@ export function DashboardLayout() {
     announcementApi.list()
       .then(res => setAnnouncements(res.data || []))
       .catch(() => {});
+    apiRequest<Array<{ id: number; title: string; message: string; createdAt: string }>>('/api/notifications')
+      .then(res => setNotifications(res.data || []))
+      .catch(() => {});
   }, []);
 
   // Outside click is handled by the backdrop div in the portal
 
-  const unreadCount = announcements.filter(a => !readIds.has(a.id)).length;
+  // Merge announcements + notifications into a single feed
+  type FeedItem = { key: string; title: string; body: string; createdAt: string; author?: string };
+  const feedItems: FeedItem[] = [
+    ...announcements.map(a => ({ key: 'a-' + a.id, title: a.title, body: a.content, createdAt: a.createdAt, author: a.createdByName })),
+    ...notifications.map(n => ({ key: 'n-' + n.id, title: n.title, body: n.message, createdAt: n.createdAt })),
+  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  const unreadCount = feedItems.filter(f => !readIds.has(f.key)).length;
 
   const markAllRead = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const allIds = new Set(announcements.map(a => a.id));
-    setReadIds(new Set(allIds));
-    localStorage.setItem('nexhr_read_announcements', JSON.stringify([...allIds]));
+    const allKeys = new Set(feedItems.map(f => f.key));
+    setReadIds(new Set(allKeys));
+    localStorage.setItem('nexhr_read_items', JSON.stringify([...allKeys]));
   };
 
   const handleBellClick = () => {
@@ -83,32 +94,33 @@ export function DashboardLayout() {
           </div>
         </div>
         <div className="max-h-80 overflow-y-auto">
-          {announcements.length > 0 ? (
-            announcements.slice(0, 10).map(a => (
+          {feedItems.length > 0 ? (
+            feedItems.slice(0, 15).map(item => (
               <div
-                key={a.id}
+                key={item.key}
                 className={`px-4 py-3 border-b border-border/50 last:border-0 hover:bg-muted/20 transition-colors cursor-pointer ${
-                  !readIds.has(a.id) ? 'bg-accent/5' : ''
+                  !readIds.has(item.key) ? 'bg-accent/5' : ''
                 }`}
                 onClick={(e) => {
                   e.stopPropagation();
                   const newRead = new Set(readIds);
-                  newRead.add(a.id);
+                  newRead.add(item.key);
                   setReadIds(new Set(newRead));
-                  localStorage.setItem('nexhr_read_announcements', JSON.stringify([...newRead]));
-                  goToAnnouncements();
+                  localStorage.setItem('nexhr_read_items', JSON.stringify([...newRead]));
+                  if (item.key.startsWith('a-')) goToAnnouncements();
+                  else setBellOpen(false);
                 }}
               >
                 <div className="flex items-start gap-3">
-                  {!readIds.has(a.id) && (
-                    <div className="h-2 w-2 rounded-full bg-accent mt-1.5 shrink-0" />
+                  {!readIds.has(item.key) && (
+                    <div className={`h-2 w-2 rounded-full mt-1.5 shrink-0 ${item.key.startsWith('n-') ? 'bg-success' : 'bg-accent'}`} />
                   )}
-                  <div className={`flex-1 min-w-0 ${readIds.has(a.id) ? 'ml-5' : ''}`}>
-                    <p className="text-sm font-semibold text-card-foreground truncate">{a.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{a.content}</p>
+                  <div className={`flex-1 min-w-0 ${readIds.has(item.key) ? 'ml-5' : ''}`}>
+                    <p className="text-sm font-semibold text-card-foreground truncate">{item.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{item.body}</p>
                     <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground/60">
-                      <span className="flex items-center gap-0.5"><User className="h-2.5 w-2.5" />{a.createdByName}</span>
-                      <span className="flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                      {item.author && <span className="flex items-center gap-0.5"><User className="h-2.5 w-2.5" />{item.author}</span>}
+                      <span className="flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{new Date(item.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
                     </div>
                   </div>
                 </div>
@@ -117,7 +129,7 @@ export function DashboardLayout() {
           ) : (
             <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
               <Bell className="h-6 w-6 mb-2 opacity-30" />
-              <p className="text-sm">No announcements</p>
+              <p className="text-sm">No notifications</p>
             </div>
           )}
         </div>
