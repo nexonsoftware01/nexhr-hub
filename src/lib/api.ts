@@ -333,6 +333,22 @@ export const holidayApi = {
     apiRequest('/api/holidays/' + id, { method: 'DELETE' }),
 };
 
+export interface CompanyWfhDayDto {
+  id: number;
+  date: string;
+  reason: string;
+  createdByName: string;
+  createdAt: string;
+}
+
+export const companyWfhApi = {
+  list: () => apiRequest<CompanyWfhDayDto[]>('/api/company-wfh'),
+  create: (data: { date: string; reason: string }) =>
+    apiRequest<CompanyWfhDayDto>('/api/company-wfh', { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: number) =>
+    apiRequest('/api/company-wfh/' + id, { method: 'DELETE' }),
+};
+
 export const regularizationApi = {
   apply: (data: { date: string; punchIn: string; punchOut: string; reason: string }) =>
     apiRequest<RegularizationResponse>('/api/regularization/apply', { method: 'POST', body: JSON.stringify(data) }),
