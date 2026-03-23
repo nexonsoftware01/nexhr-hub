@@ -9,55 +9,36 @@ import { leaveApi, LeaveResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/api-error';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, CalendarOff, Loader2, CheckCircle2, AlertTriangle, Clock, Ban, Globe, Shield } from 'lucide-react';
+import { CalendarIcon, CalendarOff, Loader2, CheckCircle2, AlertTriangle, Clock, Ban, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LeaveApply() {
   const [date, setDate] = useState<Date>();
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [reason, setReason] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<'regular' | 'client' | null>(null);
   const [result, setResult] = useState<LeaveResponse | null>(null);
-
-  // Client holiday state
-  const [clientDate, setClientDate] = useState<Date>();
-  const [clientCalendarOpen, setClientCalendarOpen] = useState(false);
-  const [clientReason, setClientReason] = useState('');
-  const [clientLoading, setClientLoading] = useState(false);
-  const [clientResult, setClientResult] = useState<LeaveResponse | null>(null);
-
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (type: 'regular' | 'client') => {
     if (!date || !reason.trim()) return;
-    setLoading(true);
+    setLoading(type);
     setResult(null);
     try {
-      const res = await leaveApi.apply({ date: format(date, 'yyyy-MM-dd'), reason: reason.trim() });
+      const payload = { date: format(date, 'yyyy-MM-dd'), reason: reason.trim() };
+      const res = type === 'regular'
+        ? await leaveApi.apply(payload)
+        : await leaveApi.applyClientHoliday(payload);
       setResult(res.data);
-      toast({ title: 'Leave Applied', description: res.message });
+      toast({
+        title: type === 'regular' ? 'Leave Applied' : 'Client Leave Requested',
+        description: type === 'regular' ? res.message : 'Your request has been sent to your manager for approval.',
+      });
+      setDate(undefined); setReason('');
     } catch (err: any) {
-      handleApiError(err, { title: 'Leave Request Failed' });
+      handleApiError(err, { title: type === 'regular' ? 'Leave Request Failed' : 'Client Leave Request Failed' });
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleClientLeaveSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!clientDate || !clientReason.trim()) return;
-    setClientLoading(true);
-    setClientResult(null);
-    try {
-      const res = await leaveApi.applyClientHoliday({ date: format(clientDate, 'yyyy-MM-dd'), reason: clientReason.trim() });
-      setClientResult(res.data);
-      toast({ title: 'Client Leave Requested', description: 'Your request has been sent to your manager for approval.' });
-      setClientDate(undefined); setClientReason('');
-    } catch (err: any) {
-      handleApiError(err, { title: 'Client Leave Request Failed' });
-    } finally {
-      setClientLoading(false);
+      setLoading(null);
     }
   };
 
@@ -74,16 +55,16 @@ export default function LeaveApply() {
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-primary-foreground">Apply Leave</h1>
-            <p className="text-sm text-primary-foreground/60">Submit a leave request</p>
+            <p className="text-sm text-primary-foreground/60">Submit a regular or client holiday leave</p>
           </div>
         </div>
       </div>
 
       {/* Policy cards */}
-      <div className="grid sm:grid-cols-3 gap-3">
+      <div className="grid sm:grid-cols-4 gap-3">
         <div className="rounded-xl border border-border bg-card p-4 shadow-card flex items-start gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success shrink-0">
-            <CheckCircle2 className="h-4.5 w-4.5" />
+            <CheckCircle2 className="h-4 w-4" />
           </div>
           <div>
             <p className="text-sm font-semibold text-card-foreground">1st Leave Free</p>
@@ -92,33 +73,42 @@ export default function LeaveApply() {
         </div>
         <div className="rounded-xl border border-border bg-card p-4 shadow-card flex items-start gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning/10 text-warning shrink-0">
-            <AlertTriangle className="h-4.5 w-4.5" />
+            <AlertTriangle className="h-4 w-4" />
           </div>
           <div>
             <p className="text-sm font-semibold text-card-foreground">Extra Leave</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Full day salary deduction</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Full day deduction</p>
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 shadow-card flex items-start gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-info/10 text-info shrink-0">
-            <Clock className="h-4.5 w-4.5" />
+            <Clock className="h-4 w-4" />
           </div>
           <div>
             <p className="text-sm font-semibold text-card-foreground">Before 11:30 AM</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Same-day cutoff time</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Same-day cutoff</p>
+          </div>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4 shadow-card flex items-start gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent shrink-0">
+            <Globe className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-card-foreground">Client Holiday</p>
+            <p className="text-xs text-muted-foreground mt-0.5">No deduction, needs approval</p>
           </div>
         </div>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-card space-y-6">
+      {/* Single form */}
+      <div className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-card space-y-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-warning/10 text-warning">
             <Ban className="h-5 w-5" />
           </div>
           <div>
             <h2 className="font-semibold text-card-foreground">Leave Request</h2>
-            <p className="text-xs text-muted-foreground">Fill in the details below</p>
+            <p className="text-xs text-muted-foreground">Fill in the details and choose the leave type</p>
           </div>
         </div>
 
@@ -149,18 +139,33 @@ export default function LeaveApply() {
           <Textarea
             value={reason}
             onChange={e => setReason(e.target.value)}
-            placeholder="Reason for leave..."
+            placeholder="Reason for leave or client holiday name (e.g., Good Friday — Client XYZ)"
             rows={4}
             required
             className="rounded-xl resize-none"
           />
         </div>
 
-        <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={loading || !date || !reason.trim()}>
-          {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CalendarOff className="h-5 w-5 mr-2" />}
-          Submit Leave
-        </Button>
-      </form>
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            onClick={() => handleSubmit('regular')}
+            className="h-12 rounded-xl text-base gap-2"
+            disabled={loading !== null || !date || !reason.trim()}
+          >
+            {loading === 'regular' ? <Loader2 className="h-5 w-5 animate-spin" /> : <CalendarOff className="h-5 w-5" />}
+            Submit Leave
+          </Button>
+          <Button
+            onClick={() => handleSubmit('client')}
+            variant="outline"
+            className="h-12 rounded-xl text-base gap-2 border-info/30 text-info hover:bg-info/5"
+            disabled={loading !== null || !date || !reason.trim()}
+          >
+            {loading === 'client' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Globe className="h-5 w-5" />}
+            Client Leave
+          </Button>
+        </div>
+      </div>
 
       {/* Result */}
       <AnimatePresence>
@@ -168,13 +173,23 @@ export default function LeaveApply() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-success/20 bg-success/5 p-6 shadow-card space-y-4"
+            className={`rounded-2xl border p-6 shadow-card space-y-4 ${
+              result.leaveType === 'CLIENT_HOLIDAY'
+                ? 'border-info/20 bg-info/5'
+                : 'border-success/20 bg-success/5'
+            }`}
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success/10 shrink-0">
-                <CheckCircle2 className="h-5 w-5 text-success" />
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl shrink-0 ${
+                result.leaveType === 'CLIENT_HOLIDAY' ? 'bg-info/10' : 'bg-success/10'
+              }`}>
+                {result.leaveType === 'CLIENT_HOLIDAY'
+                  ? <Globe className="h-5 w-5 text-info" />
+                  : <CheckCircle2 className="h-5 w-5 text-success" />}
               </div>
-              <h3 className="font-semibold text-card-foreground text-base">Leave Applied</h3>
+              <h3 className="font-semibold text-card-foreground text-base">
+                {result.leaveType === 'CLIENT_HOLIDAY' ? 'Client Leave Requested' : 'Leave Applied'}
+              </h3>
             </div>
             <div className="grid sm:grid-cols-3 gap-4 rounded-xl bg-card border border-border p-4">
               <div>
@@ -189,103 +204,11 @@ export default function LeaveApply() {
                 <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Salary Deduction</p>
                 {result.salaryDeductionApplicable ? (
                   <p className="text-sm font-semibold text-warning mt-1 flex items-center gap-1">
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    Applicable
+                    <AlertTriangle className="h-3.5 w-3.5" />Applicable
                   </p>
                 ) : (
                   <p className="text-sm font-semibold text-success mt-1">Not Applicable</p>
                 )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Client Holiday Leave */}
-      <form onSubmit={handleClientLeaveSubmit} className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-card space-y-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-info/10 text-info">
-            <Globe className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="font-semibold text-card-foreground">Request Client Holiday Leave</h2>
-            <p className="text-xs text-muted-foreground">For client-specific holidays (Good Friday, Eid, Boxing Day, etc.)</p>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3 rounded-xl border border-success/20 bg-success/5 p-3">
-          <Shield className="h-4 w-4 text-success shrink-0 mt-0.5" />
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Client holiday leaves require manager approval and have <strong className="text-card-foreground">no salary deduction</strong>.
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Date</label>
-          <Popover open={clientCalendarOpen} onOpenChange={setClientCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={cn('w-full justify-start text-left font-normal rounded-xl h-12', !clientDate && 'text-muted-foreground')}>
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {clientDate ? format(clientDate, 'PPP') : 'Select a date'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={clientDate}
-                onSelect={(d) => { setClientDate(d); setClientCalendarOpen(false); }}
-                disabled={d => d < new Date(new Date().setHours(0, 0, 0, 0))}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Client Holiday Name</label>
-          <Textarea
-            value={clientReason}
-            onChange={e => setClientReason(e.target.value)}
-            placeholder="e.g., Good Friday — Client XYZ observes this holiday"
-            rows={3}
-            required
-            className="rounded-xl resize-none"
-          />
-        </div>
-
-        <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={clientLoading || !clientDate || !clientReason.trim()}>
-          {clientLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Globe className="h-5 w-5 mr-2" />}
-          Request Client Leave
-        </Button>
-      </form>
-
-      {/* Client leave result */}
-      <AnimatePresence>
-        {clientResult && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-info/20 bg-info/5 p-6 shadow-card space-y-4"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-info/10 shrink-0">
-                <Globe className="h-5 w-5 text-info" />
-              </div>
-              <h3 className="font-semibold text-card-foreground text-base">Client Leave Requested</h3>
-            </div>
-            <div className="grid sm:grid-cols-3 gap-4 rounded-xl bg-card border border-border p-4">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Date</p>
-                <p className="text-sm font-semibold text-card-foreground mt-1">{clientResult.date}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Status</p>
-                <div className="mt-1"><StatusChip status={clientResult.status} /></div>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Salary Deduction</p>
-                <p className="text-sm font-semibold text-success mt-1">Not Applicable</p>
               </div>
             </div>
           </motion.div>
