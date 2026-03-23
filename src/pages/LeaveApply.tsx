@@ -13,30 +13,43 @@ import { CalendarIcon, CalendarOff, Loader2, CheckCircle2, AlertTriangle, Clock,
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LeaveApply() {
-  const [date, setDate] = useState<Date>();
-  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [fromDate, setFromDate] = useState<Date>();
+  const [toDate, setToDate] = useState<Date>();
+  const [fromOpen, setFromOpen] = useState(false);
+  const [toOpen, setToOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState<'regular' | 'client' | null>(null);
-  const [result, setResult] = useState<LeaveResponse | null>(null);
+  const [results, setResults] = useState<LeaveResponse[]>([]);
   const { toast } = useToast();
 
+  const effectiveToDate = toDate || fromDate; // single day if toDate not set
+
   const handleSubmit = async (type: 'regular' | 'client') => {
-    if (!date || !reason.trim()) return;
+    if (!fromDate || !reason.trim()) return;
     setLoading(type);
-    setResult(null);
+    setResults([]);
     try {
-      const payload = { date: format(date, 'yyyy-MM-dd'), reason: reason.trim() };
-      const res = type === 'regular'
-        ? await leaveApi.apply(payload)
-        : await leaveApi.applyClientHoliday(payload);
-      setResult(res.data);
-      toast({
-        title: type === 'regular' ? 'Leave Applied' : 'Client Leave Requested',
-        description: type === 'regular' ? res.message : 'Your request has been sent to your manager for approval.',
+      const from = format(fromDate, 'yyyy-MM-dd');
+      const to = format(effectiveToDate!, 'yyyy-MM-dd');
+
+      const res = await leaveApi.applyRange({
+        fromDate: from,
+        toDate: to,
+        reason: reason.trim(),
+        leaveType: type === 'client' ? 'CLIENT_HOLIDAY' : 'REGULAR',
       });
-      setDate(undefined); setReason('');
+
+      setResults(res.data || []);
+      const count = (res.data || []).length;
+      toast({
+        title: type === 'regular' ? `${count} Leave(s) Applied` : `${count} Client Leave(s) Requested`,
+        description: type === 'regular'
+          ? `${count} leave(s) applied successfully`
+          : `${count} request(s) sent to your manager for approval`,
+      });
+      setFromDate(undefined); setToDate(undefined); setReason('');
     } catch (err: any) {
-      handleApiError(err, { title: type === 'regular' ? 'Leave Request Failed' : 'Client Leave Request Failed' });
+      handleApiError(err, { title: type === 'regular' ? 'Leave Failed' : 'Client Leave Failed' });
     } finally {
       setLoading(null);
     }
@@ -100,7 +113,7 @@ export default function LeaveApply() {
         </div>
       </div>
 
-      {/* Single form */}
+      {/* Form */}
       <div className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-card space-y-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-warning/10 text-warning">
@@ -108,30 +121,53 @@ export default function LeaveApply() {
           </div>
           <div>
             <h2 className="font-semibold text-card-foreground">Leave Request</h2>
-            <p className="text-xs text-muted-foreground">Fill in the details and choose the leave type</p>
+            <p className="text-xs text-muted-foreground">Select date(s) and choose the leave type. Weekends & holidays are automatically skipped.</p>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Date</label>
-          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={cn('w-full justify-start text-left font-normal rounded-xl h-12', !date && 'text-muted-foreground')}>
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, 'PPP') : 'Select a date'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(d) => { setDate(d); setCalendarOpen(false); }}
-                disabled={d => d < new Date(new Date().setHours(0, 0, 0, 0))}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">From Date</label>
+            <Popover open={fromOpen} onOpenChange={setFromOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn('w-full justify-start text-left font-normal rounded-xl h-12', !fromDate && 'text-muted-foreground')}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {fromDate ? format(fromDate, 'dd MMM yyyy') : 'Start date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={fromDate}
+                  onSelect={(d) => { setFromDate(d); setFromOpen(false); if (toDate && d && toDate < d) setToDate(undefined); }}
+                  disabled={d => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">To Date <span className="text-muted-foreground font-normal">(optional)</span></label>
+            <Popover open={toOpen} onOpenChange={setToOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn('w-full justify-start text-left font-normal rounded-xl h-12', !toDate && 'text-muted-foreground')}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {toDate ? format(toDate, 'dd MMM yyyy') : 'Same as from'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={toDate}
+                  onSelect={(d) => { setToDate(d); setToOpen(false); }}
+                  disabled={d => d < (fromDate || new Date(new Date().setHours(0, 0, 0, 0)))}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -150,7 +186,7 @@ export default function LeaveApply() {
           <Button
             onClick={() => handleSubmit('regular')}
             className="h-12 rounded-xl text-base gap-2"
-            disabled={loading !== null || !date || !reason.trim()}
+            disabled={loading !== null || !fromDate || !reason.trim()}
           >
             {loading === 'regular' ? <Loader2 className="h-5 w-5 animate-spin" /> : <CalendarOff className="h-5 w-5" />}
             Submit Leave
@@ -158,7 +194,7 @@ export default function LeaveApply() {
           <Button
             onClick={() => handleSubmit('client')}
             className="h-12 rounded-xl text-base gap-2 bg-accent hover:bg-accent/90 text-white"
-            disabled={loading !== null || !date || !reason.trim()}
+            disabled={loading !== null || !fromDate || !reason.trim()}
           >
             {loading === 'client' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Globe className="h-5 w-5" />}
             Submit Client Leave
@@ -166,49 +202,48 @@ export default function LeaveApply() {
         </div>
       </div>
 
-      {/* Result */}
+      {/* Results */}
       <AnimatePresence>
-        {result && (
+        {results.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             className={`rounded-2xl border p-6 shadow-card space-y-4 ${
-              result.leaveType === 'CLIENT_HOLIDAY'
+              results[0]?.leaveType === 'CLIENT_HOLIDAY'
                 ? 'border-info/20 bg-info/5'
                 : 'border-success/20 bg-success/5'
             }`}
           >
             <div className="flex items-center gap-3">
               <div className={`flex h-10 w-10 items-center justify-center rounded-xl shrink-0 ${
-                result.leaveType === 'CLIENT_HOLIDAY' ? 'bg-info/10' : 'bg-success/10'
+                results[0]?.leaveType === 'CLIENT_HOLIDAY' ? 'bg-info/10' : 'bg-success/10'
               }`}>
-                {result.leaveType === 'CLIENT_HOLIDAY'
+                {results[0]?.leaveType === 'CLIENT_HOLIDAY'
                   ? <Globe className="h-5 w-5 text-info" />
                   : <CheckCircle2 className="h-5 w-5 text-success" />}
               </div>
               <h3 className="font-semibold text-card-foreground text-base">
-                {result.leaveType === 'CLIENT_HOLIDAY' ? 'Client Leave Requested' : 'Leave Applied'}
+                {results.length} Leave(s) {results[0]?.leaveType === 'CLIENT_HOLIDAY' ? 'Requested' : 'Applied'}
               </h3>
             </div>
-            <div className="grid sm:grid-cols-3 gap-4 rounded-xl bg-card border border-border p-4">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Date</p>
-                <p className="text-sm font-semibold text-card-foreground mt-1">{result.date}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Status</p>
-                <div className="mt-1"><StatusChip status={result.status} /></div>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Salary Deduction</p>
-                {result.salaryDeductionApplicable ? (
-                  <p className="text-sm font-semibold text-warning mt-1 flex items-center gap-1">
-                    <AlertTriangle className="h-3.5 w-3.5" />Applicable
-                  </p>
-                ) : (
-                  <p className="text-sm font-semibold text-success mt-1">Not Applicable</p>
-                )}
-              </div>
+            <div className="space-y-2">
+              {results.map(r => (
+                <div key={r.id} className="flex items-center justify-between rounded-xl bg-card border border-border px-4 py-2.5">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-card-foreground">
+                      {new Date(r.date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
+                    </span>
+                    <StatusChip status={r.status} />
+                  </div>
+                  {r.salaryDeductionApplicable ? (
+                    <span className="text-xs text-warning font-semibold flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />Deducted
+                    </span>
+                  ) : (
+                    <span className="text-xs text-success font-semibold">No Deduction</span>
+                  )}
+                </div>
+              ))}
             </div>
           </motion.div>
         )}

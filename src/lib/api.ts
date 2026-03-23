@@ -486,6 +486,8 @@ export const leaveApi = USE_MOCK ? {
 } : {
   apply: (data: { date: string; reason: string }) =>
     apiRequest<LeaveResponse>('/api/leave/apply', { method: 'POST', body: JSON.stringify(data) }),
+  applyRange: (data: { fromDate: string; toDate: string; reason: string; leaveType?: string }) =>
+    apiRequest<LeaveResponse[]>('/api/leave/apply-range', { method: 'POST', body: JSON.stringify(data) }),
   myRequests: () =>
     apiRequest<LeaveResponse[]>('/api/leave/my-requests'),
   applyClientHoliday: (data: { date: string; reason: string }) =>
