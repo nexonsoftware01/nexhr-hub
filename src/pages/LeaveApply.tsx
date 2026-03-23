@@ -9,7 +9,7 @@ import { leaveApi, LeaveResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/api-error';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, CalendarOff, Loader2, CheckCircle2, AlertTriangle, Clock, Ban } from 'lucide-react';
+import { CalendarIcon, CalendarOff, Loader2, CheckCircle2, AlertTriangle, Clock, Ban, Globe, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LeaveApply() {
@@ -18,6 +18,14 @@ export default function LeaveApply() {
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<LeaveResponse | null>(null);
+
+  // Client holiday state
+  const [clientDate, setClientDate] = useState<Date>();
+  const [clientCalendarOpen, setClientCalendarOpen] = useState(false);
+  const [clientReason, setClientReason] = useState('');
+  const [clientLoading, setClientLoading] = useState(false);
+  const [clientResult, setClientResult] = useState<LeaveResponse | null>(null);
+
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,6 +41,23 @@ export default function LeaveApply() {
       handleApiError(err, { title: 'Leave Request Failed' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClientLeaveSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clientDate || !clientReason.trim()) return;
+    setClientLoading(true);
+    setClientResult(null);
+    try {
+      const res = await leaveApi.applyClientHoliday({ date: format(clientDate, 'yyyy-MM-dd'), reason: clientReason.trim() });
+      setClientResult(res.data);
+      toast({ title: 'Client Leave Requested', description: 'Your request has been sent to your manager for approval.' });
+      setClientDate(undefined); setClientReason('');
+    } catch (err: any) {
+      handleApiError(err, { title: 'Client Leave Request Failed' });
+    } finally {
+      setClientLoading(false);
     }
   };
 
@@ -170,6 +195,97 @@ export default function LeaveApply() {
                 ) : (
                   <p className="text-sm font-semibold text-success mt-1">Not Applicable</p>
                 )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Client Holiday Leave */}
+      <form onSubmit={handleClientLeaveSubmit} className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-card space-y-6">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-info/10 text-info">
+            <Globe className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-card-foreground">Request Client Holiday Leave</h2>
+            <p className="text-xs text-muted-foreground">For client-specific holidays (Good Friday, Eid, Boxing Day, etc.)</p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 rounded-xl border border-success/20 bg-success/5 p-3">
+          <Shield className="h-4 w-4 text-success shrink-0 mt-0.5" />
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Client holiday leaves require manager approval and have <strong className="text-card-foreground">no salary deduction</strong>.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Date</label>
+          <Popover open={clientCalendarOpen} onOpenChange={setClientCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn('w-full justify-start text-left font-normal rounded-xl h-12', !clientDate && 'text-muted-foreground')}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {clientDate ? format(clientDate, 'PPP') : 'Select a date'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={clientDate}
+                onSelect={(d) => { setClientDate(d); setClientCalendarOpen(false); }}
+                disabled={d => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Client Holiday Name</label>
+          <Textarea
+            value={clientReason}
+            onChange={e => setClientReason(e.target.value)}
+            placeholder="e.g., Good Friday — Client XYZ observes this holiday"
+            rows={3}
+            required
+            className="rounded-xl resize-none"
+          />
+        </div>
+
+        <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={clientLoading || !clientDate || !clientReason.trim()}>
+          {clientLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Globe className="h-5 w-5 mr-2" />}
+          Request Client Leave
+        </Button>
+      </form>
+
+      {/* Client leave result */}
+      <AnimatePresence>
+        {clientResult && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-info/20 bg-info/5 p-6 shadow-card space-y-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-info/10 shrink-0">
+                <Globe className="h-5 w-5 text-info" />
+              </div>
+              <h3 className="font-semibold text-card-foreground text-base">Client Leave Requested</h3>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-4 rounded-xl bg-card border border-border p-4">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Date</p>
+                <p className="text-sm font-semibold text-card-foreground mt-1">{clientResult.date}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Status</p>
+                <div className="mt-1"><StatusChip status={clientResult.status} /></div>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Salary Deduction</p>
+                <p className="text-sm font-semibold text-success mt-1">Not Applicable</p>
               </div>
             </div>
           </motion.div>

@@ -236,9 +236,13 @@ export interface PasskeyChallengeResponse {
 export interface LeaveResponse {
   id: number;
   date: string;
-  status: 'APPLIED' | 'APPROVED' | 'REJECTED';
+  status: 'APPLIED' | 'APPROVED' | 'REJECTED' | 'PENDING';
   reason: string;
   salaryDeductionApplicable: boolean;
+  leaveType?: 'REGULAR' | 'CLIENT_HOLIDAY';
+  employeeName?: string;
+  employeeEmail?: string;
+  managerComment?: string;
 }
 
 export async function refreshAccessToken(): Promise<boolean> {
@@ -481,6 +485,12 @@ export const leaveApi = USE_MOCK ? {
     apiRequest<LeaveResponse>('/api/leave/apply', { method: 'POST', body: JSON.stringify(data) }),
   myRequests: () =>
     apiRequest<LeaveResponse[]>('/api/leave/my-requests'),
+  applyClientHoliday: (data: { date: string; reason: string }) =>
+    apiRequest<LeaveResponse>('/api/leave/client-holiday/apply', { method: 'POST', body: JSON.stringify(data) }),
+  pendingClientHolidays: () =>
+    apiRequest<LeaveResponse[]>('/api/leave/client-holiday/pending'),
+  actionClientHoliday: (data: { id: number; action: 'APPROVE' | 'REJECT'; comment?: string }) =>
+    apiRequest<LeaveResponse>('/api/leave/client-holiday/action', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export const announcementApi = {
