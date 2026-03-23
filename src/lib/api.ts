@@ -168,7 +168,7 @@ export interface MonthlyAttendance {
     punchInTime: string;
     punchOutTime: string | null;
     totalWorkedMinutes: number;
-    status: 'PRESENT' | 'HALF_DAY' | 'ABSENT' | 'CHECKED_IN' | 'LEAVE' | 'WFH';
+    status: 'PRESENT' | 'HALF_DAY' | 'ABSENT' | 'CHECKED_IN' | 'LEAVE' | 'WFH' | 'HOLIDAY';
   }>;
 }
 
@@ -317,6 +317,20 @@ export async function apiRequest<T = any>(
 
 export const profileApi = {
   me: () => apiRequest<MyProfile>('/api/users/me'),
+};
+
+export interface HolidayDto {
+  id: number;
+  date: string;
+  name: string;
+}
+
+export const holidayApi = {
+  list: () => apiRequest<HolidayDto[]>('/api/holidays'),
+  create: (data: { date: string; name: string }) =>
+    apiRequest<HolidayDto>('/api/holidays', { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: number) =>
+    apiRequest('/api/holidays/' + id, { method: 'DELETE' }),
 };
 
 export const regularizationApi = {

@@ -19,6 +19,7 @@ const statusMap: Record<string, ChipVariant> = {
   CHECKED_IN: 'info',
   LEAVE: 'warning',
   WFH: 'success',
+  HOLIDAY: 'info',
   DIRECTOR: 'info',
   HR: 'success',
   EMPLOYEE: 'neutral',

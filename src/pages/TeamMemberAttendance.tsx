@@ -73,6 +73,7 @@ export default function TeamMemberAttendance() {
                           : day.status === 'WFH' ? 'bg-success/10 text-success border-success/20'
                           : day.status === 'HALF_DAY' ? 'bg-warning/10 text-warning border-warning/20'
                           : day.status === 'LEAVE' ? 'bg-warning/10 text-warning border-warning/20'
+                          : day.status === 'HOLIDAY' ? 'bg-accent/10 text-accent border-accent/20'
                           : day.status === 'CHECKED_IN' ? 'bg-info/10 text-info border-info/20'
                           : 'bg-destructive/10 text-destructive border-destructive/20'
                         }`}>
@@ -80,6 +81,7 @@ export default function TeamMemberAttendance() {
                             : day.status === 'WFH' ? 'WFH'
                             : day.status === 'HALF_DAY' ? 'Half Day'
                             : day.status === 'LEAVE' ? 'Leave'
+                            : day.status === 'HOLIDAY' ? 'Holiday'
                             : day.status === 'CHECKED_IN' ? 'Checked In'
                             : 'Absent'}
                         </span>

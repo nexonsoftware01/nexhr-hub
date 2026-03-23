@@ -22,6 +22,7 @@ import AttendanceRegularization from "./pages/AttendanceRegularization";
 import RegularizationApprovals from "./pages/RegularizationApprovals";
 import RequestHistory from "./pages/RequestHistory";
 import Announcements from "./pages/Announcements";
+import Holidays from "./pages/Holidays";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/attendance/regularization/approvals" element={<RegularizationApprovals />} />
               <Route path="/requests/history" element={<RequestHistory />} />
               <Route path="/announcements" element={<Announcements />} />
+              <Route path="/holidays" element={<Holidays />} />
               <Route path="/payroll" element={
                 <ProtectedRoute allowedRoles={['DIRECTOR']}>
                   <Payroll />
