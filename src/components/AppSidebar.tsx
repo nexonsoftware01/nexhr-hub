@@ -137,26 +137,6 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
       {/* Footer */}
       <div className="relative border-t border-sidebar-border/40 p-3 space-y-1">
-        {!collapsed && user && (
-          <div className="mx-1 mb-2 rounded-xl bg-sidebar-accent/30 px-3 py-2.5 animate-fade-in">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary/20 text-sidebar-primary text-xs font-bold">
-                {user.name?.charAt(0)?.toUpperCase() || 'U'}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-sidebar-foreground/90 truncate">{user.name}</p>
-                <p className="text-[11px] text-sidebar-foreground/40 truncate">{user.email}</p>
-              </div>
-            </div>
-          </div>
-        )}
-        {collapsed && user && (
-          <div className="flex justify-center py-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary/20 text-sidebar-primary text-xs font-bold">
-              {user.name?.charAt(0)?.toUpperCase() || 'U'}
-            </div>
-          </div>
-        )}
         <button
           onClick={logout}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-sidebar-foreground/50 transition-all duration-200 hover:bg-destructive/10 hover:text-destructive"
