@@ -1,6 +1,8 @@
 import { NavLink } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { attendanceApi } from '@/lib/api';
 import {
   LayoutDashboard,
   Clock,
@@ -32,17 +34,18 @@ interface NavItem {
   roles?: string[];
   excludeRoles?: string[];
   end?: boolean;
+  requiresTeam?: boolean;
 }
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
   { title: 'Punch In/Out', to: '/attendance', icon: Clock, end: true, excludeRoles: ['DIRECTOR'] },
   { title: 'My Reports', to: '/attendance/my-monthly', icon: BarChart3, excludeRoles: ['DIRECTOR'] },
-  { title: 'Team Reports', to: '/attendance/team', icon: Users },
+  { title: 'Team Reports', to: '/attendance/team', icon: Users, requiresTeam: true },
   { title: 'Apply WFH', to: '/wfh/apply', icon: Home, excludeRoles: ['DIRECTOR'] },
   { title: 'Apply Leave', to: '/leave/apply', icon: CalendarOff, excludeRoles: ['DIRECTOR'] },
   { title: 'Attendance Correction', to: '/attendance/regularization', icon: FileEdit, end: true, excludeRoles: ['DIRECTOR'] },
-  { title: 'Correction Approvals', to: '/attendance/regularization/approvals', icon: ClipboardCheck },
+  { title: 'Correction Approvals', to: '/attendance/regularization/approvals', icon: ClipboardCheck, requiresTeam: true },
   { title: 'Holidays', to: '/holidays', icon: CalendarDays },
   { title: 'Announcements', to: '/announcements', icon: Megaphone, roles: ['DIRECTOR', 'HR'] },
   { title: 'Manage Users', to: '/users', icon: UserPlus, roles: ['DIRECTOR', 'HR'] },
@@ -53,9 +56,20 @@ const navItems: NavItem[] = [
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const { user, logout } = useAuth();
 
+  const now = new Date();
+  const { data: teamData } = useQuery({
+    queryKey: ['team-check', user?.userId, now.getFullYear(), now.getMonth() + 1],
+    queryFn: () => attendanceApi.teamMonthly(now.getFullYear(), now.getMonth() + 1),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!user,
+  });
+
+  const hasTeam = (teamData?.data?.length ?? 0) > 0;
+
   const filteredItems = navItems.filter(item => {
     if (item.roles && (!user || !item.roles.includes(user.role))) return false;
     if (item.excludeRoles && user && item.excludeRoles.includes(user.role)) return false;
+    if (item.requiresTeam && !hasTeam) return false;
     return true;
   });
 

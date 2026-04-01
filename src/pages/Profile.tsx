@@ -40,9 +40,12 @@ export default function Profile() {
 
   const todayPunchIn = useMemo(() => {
     if (!monthlyData?.data?.days) return null;
-    const todayStr = now.toLocaleDateString('en-CA'); // YYYY-MM-DD
-    const todayRecord = monthlyData.data.days.find(d => d.date === todayStr);
-    if (!todayRecord?.punchInTime || todayRecord.punchOutTime) return null; // no punch-in or already punched out
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${m}-${d}`;
+    const todayRecord = monthlyData.data.days.find(day => day.date === todayStr);
+    if (!todayRecord?.punchInTime || todayRecord.punchOutTime) return null;
     return todayRecord.punchInTime;
   }, [monthlyData]);
 
