@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { profileApi, leaveApi, wfhApi, MyProfile, LeaveResponse, WfhResponse } from '@/lib/api';
+import { profileApi, attendanceApi, leaveApi, wfhApi, MyProfile, LeaveResponse, WfhResponse } from '@/lib/api';
 import { StatusChip } from '@/components/StatusChip';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   User, Mail, Shield, Calendar, Clock, CheckCircle, ClockAlert, AlertTriangle,
-  Home, CalendarOff, TrendingUp, Briefcase, Loader2, UserCheck, History
+  Home, CalendarOff, TrendingUp, Briefcase, Loader2, UserCheck, History, Timer
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -29,6 +29,22 @@ export default function Profile() {
     staleTime: 2 * 60 * 1000,
     enabled: !!authUser,
   });
+
+  const now = new Date();
+  const { data: monthlyData } = useQuery({
+    queryKey: ['my-monthly-attendance', now.getFullYear(), now.getMonth() + 1],
+    queryFn: () => attendanceApi.myMonthly(now.getFullYear(), now.getMonth() + 1),
+    staleTime: 30 * 1000,
+    enabled: !!authUser,
+  });
+
+  const todayPunchIn = useMemo(() => {
+    if (!monthlyData?.data?.days) return null;
+    const todayStr = now.toLocaleDateString('en-CA'); // YYYY-MM-DD
+    const todayRecord = monthlyData.data.days.find(d => d.date === todayStr);
+    if (!todayRecord?.punchInTime || todayRecord.punchOutTime) return null; // no punch-in or already punched out
+    return todayRecord.punchInTime;
+  }, [monthlyData]);
 
   if (isLoading) {
     return (
@@ -73,6 +89,13 @@ export default function Profile() {
           </div>
         </div>
       </motion.div>
+
+      {/* Live work timer */}
+      {todayPunchIn && (
+        <motion.div variants={item}>
+          <LiveWorkTimer punchInTime={todayPunchIn} />
+        </motion.div>
+      )}
 
       {/* Info cards row */}
       <motion.div variants={item} className="grid sm:grid-cols-2 gap-4">
@@ -242,6 +265,73 @@ function RequestHistorySection() {
           <p className="text-sm text-muted-foreground">No requests found</p>
         </div>
       )}
+    </div>
+  );
+}
+
+function LiveWorkTimer({ punchInTime }: { punchInTime: string }) {
+  const [elapsed, setElapsed] = useState('');
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    const punchIn = new Date(punchInTime).getTime();
+
+    const tick = () => {
+      const diff = Math.max(0, Math.floor((Date.now() - punchIn) / 1000));
+      setSeconds(diff);
+      const h = Math.floor(diff / 3600);
+      const m = Math.floor((diff % 3600) / 60);
+      const s = diff % 60;
+      setElapsed(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`);
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [punchInTime]);
+
+  const hours = seconds / 3600;
+  // Progress: green zone (0-5h), yellow zone (5-9h), blue zone (9h+)
+  const progressPercent = Math.min(100, (hours / 9) * 100);
+  const status = hours >= 9 ? 'Present' : hours >= 5 ? 'Half Day so far' : 'Working...';
+  const statusColor = hours >= 9 ? 'text-success' : hours >= 5 ? 'text-warning' : 'text-info';
+  const barColor = hours >= 9 ? 'bg-success' : hours >= 5 ? 'bg-warning' : 'bg-info';
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-info/10 text-info">
+            <Timer className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Today's Work Timer</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Punched in at {new Date(punchInTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+            </p>
+          </div>
+        </div>
+        <span className={`text-xs font-semibold ${statusColor}`}>{status}</span>
+      </div>
+
+      <div className="text-center mb-4">
+        <p className="text-4xl font-mono font-bold tracking-wider text-card-foreground">{elapsed}</p>
+      </div>
+
+      {/* Progress bar */}
+      <div className="space-y-2">
+        <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
+          <div
+            className={`h-full rounded-full ${barColor} transition-all duration-1000`}
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+        <div className="flex justify-between text-[10px] text-muted-foreground">
+          <span>0h</span>
+          <span className="text-warning">5h (Half Day)</span>
+          <span className="text-success">9h (Present)</span>
+        </div>
+      </div>
     </div>
   );
 }
