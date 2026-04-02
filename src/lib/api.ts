@@ -41,6 +41,7 @@ export interface User {
   role: 'DIRECTOR' | 'HR' | 'EMPLOYEE';
   managerId: number | null;
   monthlySalary: number | null;
+  projectName: string | null;
 }
 
 export interface MyProfile {
@@ -64,6 +65,7 @@ export interface MyProfile {
   annualLeaveAllowance: number;
   leavesUsed: number;
   leavesRemaining: number;
+  projectName: string | null;
 }
 
 // Normalize backend values to nullable number
@@ -147,6 +149,7 @@ function mapUser(raw: any): User {
     role: raw.role,
     managerId: toNullableNumber(managerRaw),
     monthlySalary: toNullableNumber(pickSalaryRaw(raw)),
+    projectName: raw.projectName ?? raw.project_name ?? null,
   };
 }
 
@@ -387,6 +390,7 @@ export const usersApi = USE_MOCK ? {
   list: async () => (await getMocks()).mockUsersApi.list(),
   assignManager: async (userId: number, managerId: number) => (await getMocks()).mockUsersApi.assignManager(userId, managerId),
   assignSalary: async (userId: number, monthlySalary: number) => (await getMocks()).mockUsersApi.assignSalary(userId, monthlySalary),
+  assignProject: async (userId: number, projectName: string) => ({ success: true, message: 'Mock', data: null }),
   deactivate: async (userId: number) => (await getMocks()).mockUsersApi.deactivate(userId),
 } : {
   create: (data: { name: string; email: string; role: string; monthlySalary?: number }) =>
@@ -413,6 +417,8 @@ export const usersApi = USE_MOCK ? {
     apiRequest(`/api/users/${userId}/manager`, { method: 'PATCH', body: JSON.stringify({ managerId }) }),
   assignSalary: (userId: number, monthlySalary: number) =>
     apiRequest(`/api/users/${userId}/salary`, { method: 'PATCH', body: JSON.stringify({ monthlySalary }) }),
+  assignProject: (userId: number, projectName: string) =>
+    apiRequest(`/api/users/${userId}/project`, { method: 'PATCH', body: JSON.stringify({ projectName }) }),
   deactivate: (userId: number) =>
     apiRequest(`/api/users/${userId}`, { method: 'DELETE' }),
 };

@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { StatusChip } from '@/components/StatusChip';
-import { wfhApi, WfhResponse } from '@/lib/api';
+import { wfhApi, profileApi, WfhResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/api-error';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Home, Loader2, Info, CheckCircle2, Clock, Wifi, AlertTriangle } from 'lucide-react';
+import { CalendarIcon, Home, Loader2, Info, CheckCircle2, Clock, Wifi, AlertTriangle, Briefcase } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function WFHApply() {
@@ -19,6 +21,16 @@ export default function WFHApply() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<WfhResponse | null>(null);
   const { toast } = useToast();
+  const { user: authUser } = useAuth();
+
+  const { data: profileData } = useQuery({
+    queryKey: ['my-profile', authUser?.userId],
+    queryFn: () => profileApi.me(),
+    staleTime: 2 * 60 * 1000,
+    enabled: !!authUser,
+  });
+
+  const hasProject = !!profileData?.data?.projectName;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,6 +97,17 @@ export default function WFHApply() {
         </div>
       </div>
 
+      {/* No project warning */}
+      {profileData && !hasProject && (
+        <div className="flex items-start gap-3 rounded-xl border border-warning/20 bg-warning/5 p-4">
+          <Briefcase className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-semibold text-card-foreground">No Project Assigned</p>
+            <p className="text-muted-foreground mt-0.5">You must be assigned to a project before you can apply for WFH. Please contact your manager or HR.</p>
+          </div>
+        </div>
+      )}
+
       {/* Form */}
       <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-card space-y-6">
         <div className="flex items-center gap-3 mb-2">
@@ -131,7 +154,7 @@ export default function WFHApply() {
           />
         </div>
 
-        <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={loading || !date || !reason.trim()}>
+        <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={loading || !date || !reason.trim() || !hasProject}>
           {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Home className="h-5 w-5 mr-2" />}
           Submit Request
         </Button>

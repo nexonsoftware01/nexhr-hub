@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { UserPlus, Users as UsersIcon, Loader2, Search, Link2, IndianRupee, UserX, AlertTriangle, Mail, Shield } from 'lucide-react';
+import { UserPlus, Users as UsersIcon, Loader2, Search, Link2, IndianRupee, UserX, AlertTriangle, Mail, Shield, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function UsersPage() {
@@ -125,6 +125,7 @@ export default function UsersPage() {
                   <TableHead className="font-semibold">Employee</TableHead>
                   <TableHead className="font-semibold">Role</TableHead>
                   <TableHead className="font-semibold">Manager</TableHead>
+                  <TableHead className="font-semibold">Project</TableHead>
                   <TableHead className="font-semibold">Salary</TableHead>
                   <TableHead className="text-center font-semibold">Actions</TableHead>
                 </TableRow>
@@ -151,6 +152,11 @@ export default function UsersPage() {
                         ? users.find(u => u.id === user.managerId)?.name || `#${user.managerId}`
                         : <span className="text-muted-foreground/40 italic text-xs">Not assigned</span>}
                     </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {user.projectName
+                        ? <span className="font-medium text-card-foreground">{user.projectName}</span>
+                        : <span className="text-muted-foreground/40 italic text-xs">Not assigned</span>}
+                    </TableCell>
                     <TableCell className="text-sm">
                       {user.monthlySalary != null ? (
                         <span className="font-semibold">₹{user.monthlySalary.toLocaleString('en-IN')}</span>
@@ -163,6 +169,7 @@ export default function UsersPage() {
                         {user.id !== currentUser?.userId && (
                           <>
                             <AssignManagerDialog userId={user.id} users={users} onAssigned={fetchUsers} />
+                            <AssignProjectDialog userId={user.id} currentProject={user.projectName} onAssigned={fetchUsers} />
                             <AssignSalaryDialog userId={user.id} currentSalary={user.monthlySalary} onAssigned={fetchUsers} />
                             <DeactivateButton userId={user.id} userName={user.name} onDeactivated={fetchUsers} />
                           </>
@@ -376,6 +383,56 @@ function AssignSalaryDialog({ userId, currentSalary, onAssigned }: { userId: num
           <Button onClick={handleAssign} className="w-full rounded-xl h-11" disabled={loading || !salary || Number(salary) <= 0}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <IndianRupee className="h-4 w-4 mr-2" />}
             Update Salary
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AssignProjectDialog({ userId, currentProject, onAssigned }: { userId: number; currentProject: string | null; onAssigned: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [project, setProject] = useState(currentProject || '');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleAssign = async () => {
+    if (!project.trim()) return;
+    setLoading(true);
+    try {
+      await usersApi.assignProject(userId, project.trim());
+      toast({ title: 'Project Assigned', description: 'Project updated successfully' });
+      setOpen(false);
+      onAssigned();
+    } catch (err: any) {
+      handleApiError(err, { title: 'Assign Project Failed' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={o => { setOpen(o); if (o) setProject(currentProject || ''); }}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-1.5 text-xs rounded-lg hover:bg-accent/5 hover:text-accent">
+          <Briefcase className="h-3.5 w-3.5" />
+          Project
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
+              <Briefcase className="h-4 w-4" />
+            </div>
+            Assign Project
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 mt-2">
+          <Input value={project} onChange={e => setProject(e.target.value)} placeholder="Project name" className="rounded-xl h-11" />
+          <Button onClick={handleAssign} className="w-full rounded-xl h-11" disabled={loading || !project.trim()}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Briefcase className="h-4 w-4 mr-2" />}
+            Assign Project
           </Button>
         </div>
       </DialogContent>
