@@ -502,6 +502,10 @@ export const leaveApi = USE_MOCK ? {
     apiRequest<LeaveResponse[]>('/api/leave/client-holiday/pending'),
   actionClientHoliday: (data: { id: number; action: 'APPROVE' | 'REJECT'; comment?: string }) =>
     apiRequest<LeaveResponse>('/api/leave/client-holiday/action', { method: 'POST', body: JSON.stringify(data) }),
+  pendingRegularLeaves: () =>
+    apiRequest<LeaveResponse[]>('/api/leave/pending'),
+  actionRegularLeave: (data: { id: number; action: 'APPROVE' | 'REJECT'; comment?: string }) =>
+    apiRequest<LeaveResponse>('/api/leave/action', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export const announcementApi = {

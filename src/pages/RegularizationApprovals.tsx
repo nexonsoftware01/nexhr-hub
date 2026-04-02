@@ -5,17 +5,20 @@ import { StatusChip } from '@/components/StatusChip';
 import { regularizationApi, leaveApi, RegularizationResponse, LeaveResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/api-error';
-import { ClipboardCheck, Loader2, CheckCircle, XCircle, Clock, User, Mail, FileEdit, AlertTriangle, Globe } from 'lucide-react';
+import { ClipboardCheck, Loader2, CheckCircle, XCircle, Clock, User, Mail, FileEdit, AlertTriangle, Globe, CalendarOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RegularizationApprovals() {
   const [requests, setRequests] = useState<RegularizationResponse[]>([]);
   const [clientLeaves, setClientLeaves] = useState<LeaveResponse[]>([]);
+  const [regularLeaves, setRegularLeaves] = useState<LeaveResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<number | null>(null);
   const [clientActioningId, setClientActioningId] = useState<number | null>(null);
+  const [regularActioningId, setRegularActioningId] = useState<number | null>(null);
   const [comments, setComments] = useState<Record<number, string>>({});
   const [clientComments, setClientComments] = useState<Record<number, string>>({});
+  const [regularComments, setRegularComments] = useState<Record<number, string>>({});
   const { toast } = useToast();
 
   const fetchPending = () => {
@@ -23,9 +26,11 @@ export default function RegularizationApprovals() {
     Promise.all([
       regularizationApi.pending().catch(() => ({ data: [] as RegularizationResponse[] })),
       leaveApi.pendingClientHolidays().catch(() => ({ data: [] as LeaveResponse[] })),
-    ]).then(([regRes, clRes]) => {
+      leaveApi.pendingRegularLeaves().catch(() => ({ data: [] as LeaveResponse[] })),
+    ]).then(([regRes, clRes, rlRes]) => {
       setRequests(regRes.data || []);
       setClientLeaves(clRes.data || []);
+      setRegularLeaves(rlRes.data || []);
     }).finally(() => setLoading(false));
   };
 
@@ -60,7 +65,20 @@ export default function RegularizationApprovals() {
     }
   };
 
-  const totalPending = requests.length + clientLeaves.length;
+  const handleRegularLeaveAction = async (id: number, action: 'APPROVE' | 'REJECT') => {
+    setRegularActioningId(id);
+    try {
+      await leaveApi.actionRegularLeave({ id, action, comment: regularComments[id]?.trim() || undefined });
+      toast({ title: action === 'APPROVE' ? 'Approved' : 'Rejected', description: `Leave request has been ${action.toLowerCase()}d.` });
+      setRegularLeaves(prev => prev.filter(r => r.id !== id));
+    } catch (err: any) {
+      handleApiError(err, { title: `${action} Failed` });
+    } finally {
+      setRegularActioningId(null);
+    }
+  };
+
+  const totalPending = requests.length + clientLeaves.length + regularLeaves.length;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 animate-fade-in-up">
@@ -190,6 +208,97 @@ export default function RegularizationApprovals() {
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-12 text-center">
           <ClipboardCheck className="h-8 w-8 text-muted-foreground/40 mb-3" />
           <p className="text-sm text-muted-foreground">No pending correction requests</p>
+        </div>
+      )}
+
+      {/* Regular Leave Approvals (>2 days) */}
+      <h2 className="text-lg font-semibold text-foreground">Leave Approvals</h2>
+
+      {regularLeaves.length > 0 ? (
+        <div className="space-y-4">
+          {regularLeaves.map(req => (
+            <motion.div
+              key={`rl-${req.id}`}
+              layout
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/10 text-warning font-semibold text-sm shrink-0">
+                    {req.employeeName?.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-card-foreground">{req.employeeName}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Mail className="h-3 w-3" />{req.employeeEmail}
+                    </p>
+                  </div>
+                </div>
+                <StatusChip status={req.status} />
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-4 rounded-xl bg-muted/20 border border-border/50 p-4">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Date</p>
+                  <p className="text-sm font-semibold text-card-foreground mt-1">{req.date}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Type</p>
+                  <p className="text-sm font-semibold text-warning mt-1 flex items-center gap-1"><CalendarOff className="h-3.5 w-3.5" />Regular Leave</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Salary Deduction</p>
+                  <p className={`text-sm font-semibold mt-1 ${req.salaryDeductionApplicable ? 'text-warning' : 'text-success'}`}>
+                    {req.salaryDeductionApplicable ? 'Applicable' : 'Not Applicable'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-xl bg-warning/5 border border-warning/10 p-3">
+                <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Reason</p>
+                  <p className="text-sm text-card-foreground mt-0.5">{req.reason}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Textarea
+                  placeholder="Add a comment (optional)..."
+                  value={regularComments[req.id] || ''}
+                  onChange={e => setRegularComments(prev => ({ ...prev, [req.id]: e.target.value }))}
+                  rows={2}
+                  className="rounded-xl resize-none text-sm"
+                />
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => handleRegularLeaveAction(req.id, 'APPROVE')}
+                    disabled={regularActioningId === req.id}
+                    className="flex-1 h-11 rounded-xl gap-2 bg-success hover:bg-success/90 text-white"
+                  >
+                    {regularActioningId === req.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                    Approve
+                  </Button>
+                  <Button
+                    onClick={() => handleRegularLeaveAction(req.id, 'REJECT')}
+                    disabled={regularActioningId === req.id}
+                    variant="outline"
+                    className="flex-1 h-11 rounded-xl gap-2 border-destructive/30 text-destructive hover:bg-destructive/5"
+                  >
+                    {regularActioningId === req.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                    Reject
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-12 text-center">
+          <CalendarOff className="h-8 w-8 text-muted-foreground/40 mb-3" />
+          <p className="text-sm text-muted-foreground">No pending leave approvals</p>
         </div>
       )}
 
