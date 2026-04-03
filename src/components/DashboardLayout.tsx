@@ -64,11 +64,11 @@ export function DashboardLayout() {
     <div ref={bellRef} className="relative">
       <button
         onClick={handleBellClick}
-        className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted/50 transition-colors"
+        className="relative flex h-9 w-9 items-center justify-center rounded-xl hover:bg-muted/60 transition-all"
       >
-        <Bell className="h-5 w-5 text-muted-foreground" />
+        <Bell className="h-[18px] w-[18px] text-muted-foreground" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white px-1">
+          <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-white px-1 shadow-sm shadow-destructive/30 animate-scale-in">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -79,7 +79,7 @@ export function DashboardLayout() {
   const BellDropdown = bellOpen ? createPortal(
     <>
       <div className="fixed inset-0" style={{ zIndex: 99998 }} onClick={() => setBellOpen(false)} />
-      <div className="fixed right-4 top-14 w-80 sm:w-96 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden" style={{ zIndex: 99999 }}>
+      <div className="fixed right-4 top-14 w-80 sm:w-96 rounded-2xl border border-border/60 bg-card shadow-elevated overflow-hidden animate-slide-up" style={{ zIndex: 99999 }}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/20">
           <h3 className="font-semibold text-card-foreground text-sm">Announcements</h3>
           <div className="flex items-center gap-2">
@@ -181,17 +181,18 @@ export function DashboardLayout() {
         </header>
 
         {/* Desktop header */}
-        <header className="hidden lg:flex h-14 items-center justify-between border-b border-border bg-card/60 backdrop-blur-md px-6">
+        <header className="hidden lg:flex h-[56px] items-center justify-between border-b border-border/60 bg-card/70 backdrop-blur-xl px-6 sticky top-0 z-30">
           <div />
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {BellButton}
+            <div className="h-6 w-px bg-border/60" />
             {user && (
-              <Link to="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
+              <Link to="/profile" className="flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-muted/50 transition-all cursor-pointer">
                 <div className="text-right">
-                  <p className="text-sm font-medium text-foreground">{user.name}</p>
-                  <p className="text-xs text-muted-foreground">{user.role.replace(/_/g, ' ')}</p>
+                  <p className="text-sm font-semibold text-foreground leading-tight">{user.name}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{user.role.replace(/_/g, ' ')}</p>
                 </div>
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent/70 text-accent-foreground text-sm font-bold shadow-md">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent/70 text-accent-foreground text-sm font-bold shadow-lg shadow-accent/20 ring-2 ring-accent/10">
                   {user.name?.charAt(0) || 'U'}
                 </div>
               </Link>
@@ -199,7 +200,7 @@ export function DashboardLayout() {
           </div>
         </header>
 
-        {/* Page content with dot pattern */}
+        {/* Page content */}
         <main className="flex-1 overflow-y-auto bg-dot-pattern p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>

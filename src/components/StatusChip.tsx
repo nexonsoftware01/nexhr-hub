@@ -3,10 +3,10 @@ import { cn } from '@/lib/utils';
 type ChipVariant = 'success' | 'warning' | 'error' | 'info' | 'neutral';
 
 const variantClasses: Record<ChipVariant, string> = {
-  success: 'bg-success/10 text-success border-success/20',
-  warning: 'bg-warning/10 text-warning border-warning/20',
-  error: 'bg-destructive/10 text-destructive border-destructive/20',
-  info: 'bg-info/10 text-info border-info/20',
+  success: 'bg-success/8 text-success border-success/15 shadow-[0_1px_4px_-1px] shadow-success/10',
+  warning: 'bg-warning/8 text-warning border-warning/15 shadow-[0_1px_4px_-1px] shadow-warning/10',
+  error: 'bg-destructive/8 text-destructive border-destructive/15 shadow-[0_1px_4px_-1px] shadow-destructive/10',
+  info: 'bg-info/8 text-info border-info/15 shadow-[0_1px_4px_-1px] shadow-info/10',
   neutral: 'bg-muted text-muted-foreground border-border',
 };
 
@@ -23,6 +23,9 @@ const statusMap: Record<string, ChipVariant> = {
   DIRECTOR: 'info',
   HR: 'success',
   EMPLOYEE: 'neutral',
+  PRESENT: 'success',
+  HALF_DAY: 'warning',
+  ABSENT: 'error',
 };
 
 interface StatusChipProps {
@@ -35,7 +38,7 @@ export function StatusChip({ status, variant, className }: StatusChipProps) {
   const v = variant || statusMap[status] || 'neutral';
   return (
     <span className={cn(
-      'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold tracking-wide',
+      'inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider',
       variantClasses[v],
       className
     )}>
