@@ -508,6 +508,30 @@ export const leaveApi = USE_MOCK ? {
     apiRequest<LeaveResponse>('/api/leave/action', { method: 'POST', body: JSON.stringify(data) }),
 };
 
+export interface DeviceChangeResponse {
+  id: number;
+  userId: number;
+  employeeName: string;
+  employeeEmail: string;
+  reason: string;
+  status: string;
+  createdAt: string;
+  actionedAt: string | null;
+  actionedByName: string | null;
+  comment: string | null;
+}
+
+export const deviceChangeApi = {
+  apply: (data: { reason: string }) =>
+    apiRequest<DeviceChangeResponse>('/api/device-change/apply', { method: 'POST', body: JSON.stringify(data) }),
+  myRequests: () =>
+    apiRequest<DeviceChangeResponse[]>('/api/device-change/my-requests'),
+  pending: () =>
+    apiRequest<DeviceChangeResponse[]>('/api/device-change/pending'),
+  action: (data: { id: number; action: 'APPROVE' | 'REJECT'; comment?: string }) =>
+    apiRequest<DeviceChangeResponse>('/api/device-change/action', { method: 'POST', body: JSON.stringify(data) }),
+};
+
 export const announcementApi = {
   list: () => apiRequest<AnnouncementResponse[]>('/api/announcements'),
   create: (data: { title: string; content: string }) =>

@@ -20,6 +20,7 @@ import {
   ClipboardCheck,
   Megaphone,
   CalendarDays,
+  Smartphone,
 } from 'lucide-react';
 
 interface AppSidebarProps {
@@ -46,6 +47,7 @@ const navItems: NavItem[] = [
   { title: 'Apply Leave', to: '/leave/apply', icon: CalendarOff, excludeRoles: ['DIRECTOR'] },
   { title: 'Attendance Correction', to: '/attendance/regularization', icon: FileEdit, end: true, excludeRoles: ['DIRECTOR'] },
   { title: 'Correction Approvals', to: '/attendance/regularization/approvals', icon: ClipboardCheck, requiresTeam: true },
+  { title: 'Change Device', to: '/device-change', icon: Smartphone, excludeRoles: ['DIRECTOR'] },
   { title: 'Holidays', to: '/holidays', icon: CalendarDays },
   { title: 'Announcements', to: '/announcements', icon: Megaphone, roles: ['DIRECTOR', 'HR'] },
   { title: 'Manage Users', to: '/users', icon: UserPlus, roles: ['DIRECTOR', 'HR'] },

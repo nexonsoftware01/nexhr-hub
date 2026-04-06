@@ -2,23 +2,26 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { StatusChip } from '@/components/StatusChip';
-import { regularizationApi, leaveApi, RegularizationResponse, LeaveResponse } from '@/lib/api';
+import { regularizationApi, leaveApi, deviceChangeApi, RegularizationResponse, LeaveResponse, DeviceChangeResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/api-error';
-import { ClipboardCheck, Loader2, CheckCircle, XCircle, Clock, User, Mail, FileEdit, AlertTriangle, Globe, CalendarOff } from 'lucide-react';
+import { ClipboardCheck, Loader2, CheckCircle, XCircle, Clock, User, Mail, FileEdit, AlertTriangle, Globe, CalendarOff, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RegularizationApprovals() {
   const [requests, setRequests] = useState<RegularizationResponse[]>([]);
   const [clientLeaves, setClientLeaves] = useState<LeaveResponse[]>([]);
   const [regularLeaves, setRegularLeaves] = useState<LeaveResponse[]>([]);
+  const [deviceChanges, setDeviceChanges] = useState<DeviceChangeResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<number | null>(null);
   const [clientActioningId, setClientActioningId] = useState<number | null>(null);
   const [regularActioningId, setRegularActioningId] = useState<number | null>(null);
+  const [deviceActioningId, setDeviceActioningId] = useState<number | null>(null);
   const [comments, setComments] = useState<Record<number, string>>({});
   const [clientComments, setClientComments] = useState<Record<number, string>>({});
   const [regularComments, setRegularComments] = useState<Record<number, string>>({});
+  const [deviceComments, setDeviceComments] = useState<Record<number, string>>({});
   const { toast } = useToast();
 
   const fetchPending = () => {
@@ -27,10 +30,12 @@ export default function RegularizationApprovals() {
       regularizationApi.pending().catch(() => ({ data: [] as RegularizationResponse[] })),
       leaveApi.pendingClientHolidays().catch(() => ({ data: [] as LeaveResponse[] })),
       leaveApi.pendingRegularLeaves().catch(() => ({ data: [] as LeaveResponse[] })),
-    ]).then(([regRes, clRes, rlRes]) => {
+      deviceChangeApi.pending().catch(() => ({ data: [] as DeviceChangeResponse[] })),
+    ]).then(([regRes, clRes, rlRes, dcRes]) => {
       setRequests(regRes.data || []);
       setClientLeaves(clRes.data || []);
       setRegularLeaves(rlRes.data || []);
+      setDeviceChanges(dcRes.data || []);
     }).finally(() => setLoading(false));
   };
 
@@ -78,7 +83,20 @@ export default function RegularizationApprovals() {
     }
   };
 
-  const totalPending = requests.length + clientLeaves.length + regularLeaves.length;
+  const handleDeviceChangeAction = async (id: number, action: 'APPROVE' | 'REJECT') => {
+    setDeviceActioningId(id);
+    try {
+      await deviceChangeApi.action({ id, action, comment: deviceComments[id]?.trim() || undefined });
+      toast({ title: action === 'APPROVE' ? 'Approved' : 'Rejected', description: `Device change request has been ${action.toLowerCase()}d.` });
+      setDeviceChanges(prev => prev.filter(r => r.id !== id));
+    } catch (err: any) {
+      handleApiError(err, { title: `${action} Failed` });
+    } finally {
+      setDeviceActioningId(null);
+    }
+  };
+
+  const totalPending = requests.length + clientLeaves.length + regularLeaves.length + deviceChanges.length;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 animate-fade-in-up">
@@ -388,6 +406,93 @@ export default function RegularizationApprovals() {
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-12 text-center">
           <Globe className="h-8 w-8 text-muted-foreground/40 mb-3" />
           <p className="text-sm text-muted-foreground">No pending client holiday leaves</p>
+        </div>
+      )}
+
+      {/* Device Change Approvals */}
+      <h2 className="text-lg font-semibold text-foreground">Device Change Requests</h2>
+
+      {deviceChanges.length > 0 ? (
+        <div className="space-y-4">
+          {deviceChanges.map(req => (
+            <motion.div
+              key={`dc-${req.id}`}
+              layout
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-info/10 text-info font-semibold text-sm shrink-0">
+                    {req.employeeName?.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-card-foreground">{req.employeeName}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Mail className="h-3 w-3" />{req.employeeEmail}
+                    </p>
+                  </div>
+                </div>
+                <StatusChip status={req.status} />
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4 rounded-xl bg-muted/20 border border-border/50 p-4">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Request Type</p>
+                  <p className="text-sm font-semibold text-info mt-1 flex items-center gap-1"><Smartphone className="h-3.5 w-3.5" />Device Change</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Submitted</p>
+                  <p className="text-sm font-semibold text-card-foreground mt-1">
+                    {new Date(req.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-xl bg-info/5 border border-info/10 p-3">
+                <Smartphone className="h-4 w-4 text-info shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Reason</p>
+                  <p className="text-sm text-card-foreground mt-0.5">{req.reason}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Textarea
+                  placeholder="Add a comment (optional)..."
+                  value={deviceComments[req.id] || ''}
+                  onChange={e => setDeviceComments(prev => ({ ...prev, [req.id]: e.target.value }))}
+                  rows={2}
+                  className="rounded-xl resize-none text-sm"
+                />
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => handleDeviceChangeAction(req.id, 'APPROVE')}
+                    disabled={deviceActioningId === req.id}
+                    className="flex-1 h-11 rounded-xl gap-2 bg-success hover:bg-success/90 text-white"
+                  >
+                    {deviceActioningId === req.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                    Approve
+                  </Button>
+                  <Button
+                    onClick={() => handleDeviceChangeAction(req.id, 'REJECT')}
+                    disabled={deviceActioningId === req.id}
+                    variant="outline"
+                    className="flex-1 h-11 rounded-xl gap-2 border-destructive/30 text-destructive hover:bg-destructive/5"
+                  >
+                    {deviceActioningId === req.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                    Reject
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-12 text-center">
+          <Smartphone className="h-8 w-8 text-muted-foreground/40 mb-3" />
+          <p className="text-sm text-muted-foreground">No pending device change requests</p>
         </div>
       )}
     </div>
