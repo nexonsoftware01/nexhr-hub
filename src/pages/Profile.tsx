@@ -60,6 +60,7 @@ export default function Profile() {
   const profile = data?.data;
   if (!profile) return null;
 
+  const isDirector = profile.role === 'DIRECTOR';
   const totalHours = (profile.totalWorkedMinutes / 60).toFixed(1);
   const workingDays = profile.presentDays + profile.halfDayCount + profile.absentCount;
   const avgHours = workingDays > 0 ? (profile.totalWorkedMinutes / 60 / workingDays).toFixed(1) : '—';
@@ -101,28 +102,30 @@ export default function Profile() {
       )}
 
       {/* Info cards row */}
-      <motion.div variants={item} className="grid sm:grid-cols-2 gap-4">
-        {/* Manager */}
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-info/10 text-info">
-              <UserCheck className="h-5 w-5" />
+      <motion.div variants={item} className={isDirector ? '' : 'grid sm:grid-cols-2 gap-4'}>
+        {/* Manager — hide for Director */}
+        {!isDirector && (
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-info/10 text-info">
+                <UserCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Reporting Manager</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Reporting Manager</p>
-            </div>
+            {profile.managerName ? (
+              <div>
+                <p className="text-lg font-bold text-card-foreground">{profile.managerName}</p>
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
+                  <Mail className="h-3.5 w-3.5" />{profile.managerEmail}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground/60 italic">Not assigned</p>
+            )}
           </div>
-          {profile.managerName ? (
-            <div>
-              <p className="text-lg font-bold text-card-foreground">{profile.managerName}</p>
-              <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
-                <Mail className="h-3.5 w-3.5" />{profile.managerEmail}
-              </p>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground/60 italic">Not assigned</p>
-          )}
-        </div>
+        )}
 
         {/* Employment */}
         <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
@@ -155,55 +158,60 @@ export default function Profile() {
         </div>
       </motion.div>
 
-      {/* Current month section header */}
-      <motion.div variants={item}>
-        <h2 className="text-lg font-semibold text-foreground">{currentMonthName} {profile.currentMonthYear} — Attendance</h2>
-      </motion.div>
+      {/* Employee-only sections */}
+      {!isDirector && (
+        <>
+          {/* Current month section header */}
+          <motion.div variants={item}>
+            <h2 className="text-lg font-semibold text-foreground">{currentMonthName} {profile.currentMonthYear} — Attendance</h2>
+          </motion.div>
 
-      {/* Attendance stats */}
-      <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatTile label="Present" value={String(profile.presentDays)} icon={CheckCircle} color="success" />
-        <StatTile label="Half Days" value={String(profile.halfDayCount)} icon={ClockAlert} color="warning" />
-        <StatTile label="Absent" value={String(profile.absentCount)} icon={AlertTriangle} color="destructive" />
-        <StatTile label="Total Hours" value={`${totalHours}h`} icon={Clock} color="info" />
-        <StatTile label="Avg / Day" value={`${avgHours}h`} icon={TrendingUp} color="accent" />
-      </motion.div>
+          {/* Attendance stats */}
+          <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            <StatTile label="Present" value={String(profile.presentDays)} icon={CheckCircle} color="success" />
+            <StatTile label="Half Days" value={String(profile.halfDayCount)} icon={ClockAlert} color="warning" />
+            <StatTile label="Absent" value={String(profile.absentCount)} icon={AlertTriangle} color="destructive" />
+            <StatTile label="Total Hours" value={`${totalHours}h`} icon={Clock} color="info" />
+            <StatTile label="Avg / Day" value={`${avgHours}h`} icon={TrendingUp} color="accent" />
+          </motion.div>
 
-      {/* Leave Balance */}
-      <motion.div variants={item}>
-        <h2 className="text-lg font-semibold text-foreground">Leave Balance ({profile.currentMonthYear})</h2>
-      </motion.div>
+          {/* Leave Balance */}
+          <motion.div variants={item}>
+            <h2 className="text-lg font-semibold text-foreground">Leave Balance ({profile.currentMonthYear})</h2>
+          </motion.div>
 
-      <motion.div variants={item} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatTile label="Annual Allowance" value={String(profile.annualLeaveAllowance)} icon={Calendar} color="info" />
-        <StatTile label="Leaves Used" value={String(profile.leavesUsed)} icon={CalendarOff} color="warning" />
-        <StatTile label="Leaves Remaining" value={String(profile.leavesRemaining)} icon={CheckCircle} color="success" />
-        <StatTile label={`WFH (${currentMonthName.substring(0, 3)})`} value={String(profile.wfhTakenThisMonth)} icon={Home} color="accent" />
-      </motion.div>
+          <motion.div variants={item} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatTile label="Annual Allowance" value={String(profile.annualLeaveAllowance)} icon={Calendar} color="info" />
+            <StatTile label="Leaves Used" value={String(profile.leavesUsed)} icon={CalendarOff} color="warning" />
+            <StatTile label="Leaves Remaining" value={String(profile.leavesRemaining)} icon={CheckCircle} color="success" />
+            <StatTile label={`WFH (${currentMonthName.substring(0, 3)})`} value={String(profile.wfhTakenThisMonth)} icon={Home} color="accent" />
+          </motion.div>
 
-      {/* Request History */}
-      <motion.div variants={item}>
-        <h2 className="text-lg font-semibold text-foreground">Request History</h2>
-      </motion.div>
+          {/* Request History */}
+          <motion.div variants={item}>
+            <h2 className="text-lg font-semibold text-foreground">Request History</h2>
+          </motion.div>
 
-      <motion.div variants={item}>
-        <RequestHistorySection />
-      </motion.div>
+          <motion.div variants={item}>
+            <RequestHistorySection />
+          </motion.div>
 
-      {/* Policy reminder */}
-      <motion.div variants={item} className="flex items-start gap-3 rounded-xl border border-info/20 bg-info/5 p-4">
-        <Shield className="h-5 w-5 text-info shrink-0 mt-0.5" />
-        <div className="text-sm text-card-foreground">
-          <p className="font-semibold">Leave & Attendance Policy</p>
-          <ul className="mt-1.5 text-muted-foreground leading-relaxed space-y-1">
-            <li>12 casual leaves per year — no salary deduction until exhausted</li>
-            <li>Leaves beyond 12 per year: full day salary deducted</li>
-            <li>1 free WFH per month. Additional WFH: 25% daily salary deducted</li>
-            <li>Client holiday leaves: no deduction (requires manager approval)</li>
-            <li>Working 9+ hours = Present. 5–9 hours = Half Day. Less than 5 = Absent</li>
-          </ul>
-        </div>
-      </motion.div>
+          {/* Policy reminder */}
+          <motion.div variants={item} className="flex items-start gap-3 rounded-xl border border-info/20 bg-info/5 p-4">
+            <Shield className="h-5 w-5 text-info shrink-0 mt-0.5" />
+            <div className="text-sm text-card-foreground">
+              <p className="font-semibold">Leave & Attendance Policy</p>
+              <ul className="mt-1.5 text-muted-foreground leading-relaxed space-y-1">
+                <li>12 casual leaves per year — no salary deduction until exhausted</li>
+                <li>Leaves beyond 12 per year: full day salary deducted</li>
+                <li>1 free WFH per month. Additional WFH: 25% daily salary deducted</li>
+                <li>Client holiday leaves: no deduction (requires manager approval)</li>
+                <li>Working 9+ hours = Present. 5–9 hours = Half Day. Less than 5 = Absent</li>
+              </ul>
+            </div>
+          </motion.div>
+        </>
+      )}
     </motion.div>
   );
 }
