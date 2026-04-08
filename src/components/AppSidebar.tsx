@@ -20,6 +20,7 @@ import {
   ClipboardCheck,
   Megaphone,
   CalendarDays,
+  CalendarRange,
   Smartphone,
 } from 'lucide-react';
 
@@ -48,6 +49,7 @@ const navItems: NavItem[] = [
   { title: 'Attendance Correction', to: '/attendance/regularization', icon: FileEdit, end: true, excludeRoles: ['DIRECTOR'] },
   { title: 'Correction Approvals', to: '/attendance/regularization/approvals', icon: ClipboardCheck, requiresTeam: true },
   { title: 'Device Management', to: '/device-change', icon: Smartphone },
+  { title: 'Team Calendar', to: '/team-calendar', icon: CalendarRange },
   { title: 'Holidays', to: '/holidays', icon: CalendarDays },
   { title: 'Announcements', to: '/announcements', icon: Megaphone, roles: ['DIRECTOR', 'HR'] },
   { title: 'Manage Users', to: '/users', icon: UserPlus, roles: ['DIRECTOR', 'HR'] },

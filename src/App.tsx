@@ -24,6 +24,7 @@ import RequestHistory from "./pages/RequestHistory";
 import Announcements from "./pages/Announcements";
 import Holidays from "./pages/Holidays";
 import DeviceChange from "./pages/DeviceChange";
+import TeamCalendar from "./pages/TeamCalendar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/attendance/regularization" element={<AttendanceRegularization />} />
               <Route path="/attendance/regularization/approvals" element={<RegularizationApprovals />} />
               <Route path="/device-change" element={<DeviceChange />} />
+              <Route path="/team-calendar" element={<TeamCalendar />} />
               <Route path="/requests/history" element={<RequestHistory />} />
               <Route path="/announcements" element={<Announcements />} />
               <Route path="/holidays" element={<Holidays />} />

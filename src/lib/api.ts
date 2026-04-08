@@ -532,6 +532,22 @@ export const deviceChangeApi = {
     apiRequest<DeviceChangeResponse>('/api/device-change/action', { method: 'POST', body: JSON.stringify(data) }),
 };
 
+export interface TeamCalendarDay {
+  date: string;
+  userId: number | null;
+  employeeName: string;
+  type: 'LEAVE' | 'WFH' | 'HOLIDAY' | 'CLIENT_HOLIDAY';
+}
+
+export const teamCalendarApi = {
+  get: (year?: number, month?: number) => {
+    const params = new URLSearchParams();
+    if (year) params.set('year', String(year));
+    if (month) params.set('month', String(month));
+    return apiRequest<TeamCalendarDay[]>(`/api/team-calendar?${params}`);
+  },
+};
+
 export const announcementApi = {
   list: () => apiRequest<AnnouncementResponse[]>('/api/announcements'),
   create: (data: { title: string; content: string }) =>
