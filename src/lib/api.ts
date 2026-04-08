@@ -66,6 +66,17 @@ export interface MyProfile {
   leavesUsed: number;
   leavesRemaining: number;
   projectName: string | null;
+  // Director-only
+  totalActiveEmployees: number | null;
+  totalHrStaff: number | null;
+  newJoinersThisMonth: number | null;
+  todayPresent: number | null;
+  todayOnLeave: number | null;
+  todayOnWfh: number | null;
+  todayAbsent: number | null;
+  pendingLeaveApprovals: number | null;
+  pendingDeviceChanges: number | null;
+  pendingRegularizations: number | null;
 }
 
 // Normalize backend values to nullable number

@@ -5,7 +5,8 @@ import { StatusChip } from '@/components/StatusChip';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   User, Mail, Shield, Calendar, Clock, CheckCircle, ClockAlert, AlertTriangle,
-  Home, CalendarOff, TrendingUp, Briefcase, Loader2, UserCheck, History, Timer
+  Home, CalendarOff, TrendingUp, Briefcase, Loader2, UserCheck, History, Timer,
+  Users, UserPlus, ClipboardCheck, Smartphone, FileEdit
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -157,6 +158,45 @@ export default function Profile() {
           </div>
         </div>
       </motion.div>
+
+      {/* Director-only sections */}
+      {isDirector && (
+        <>
+          {/* Company Overview */}
+          <motion.div variants={item}>
+            <h2 className="text-lg font-semibold text-foreground">Company Overview</h2>
+          </motion.div>
+
+          <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <StatTile label="Active Employees" value={String(profile.totalActiveEmployees ?? 0)} icon={Users} color="primary" />
+            <StatTile label="HR Staff" value={String(profile.totalHrStaff ?? 0)} icon={Shield} color="info" />
+            <StatTile label="New This Month" value={String(profile.newJoinersThisMonth ?? 0)} icon={UserPlus} color="success" />
+          </motion.div>
+
+          {/* Today's Snapshot */}
+          <motion.div variants={item}>
+            <h2 className="text-lg font-semibold text-foreground">Today's Snapshot</h2>
+          </motion.div>
+
+          <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatTile label="Present" value={String(profile.todayPresent ?? 0)} icon={CheckCircle} color="success" />
+            <StatTile label="On Leave" value={String(profile.todayOnLeave ?? 0)} icon={CalendarOff} color="warning" />
+            <StatTile label="WFH" value={String(profile.todayOnWfh ?? 0)} icon={Home} color="accent" />
+            <StatTile label="Absent" value={String(profile.todayAbsent ?? 0)} icon={AlertTriangle} color="destructive" />
+          </motion.div>
+
+          {/* Pending Approvals */}
+          <motion.div variants={item}>
+            <h2 className="text-lg font-semibold text-foreground">Pending Approvals</h2>
+          </motion.div>
+
+          <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <StatTile label="Leave Requests" value={String(profile.pendingLeaveApprovals ?? 0)} icon={ClipboardCheck} color="warning" />
+            <StatTile label="Device Changes" value={String(profile.pendingDeviceChanges ?? 0)} icon={Smartphone} color="info" />
+            <StatTile label="Corrections" value={String(profile.pendingRegularizations ?? 0)} icon={FileEdit} color="accent" />
+          </motion.div>
+        </>
+      )}
 
       {/* Employee-only sections */}
       {!isDirector && (
