@@ -58,7 +58,14 @@ export default function Attendance() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) { reject(new Error('Geolocation not supported')); return; }
       setLocationLoading(true);
-      navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+      navigator.geolocation.getCurrentPosition(resolve, (err) => {
+        // If high accuracy times out, retry with lower accuracy
+        if (err.code === err.TIMEOUT) {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 });
+        } else {
+          reject(err);
+        }
+      }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 30000 });
     });
   }, []);
 

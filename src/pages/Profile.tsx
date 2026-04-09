@@ -221,7 +221,7 @@ export default function Profile() {
           </motion.div>
 
           <motion.div variants={item} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatTile label="Annual Allowance" value={String(profile.annualLeaveAllowance)} icon={Calendar} color="info" />
+            <StatTile label="Accrued Leaves" value={String(profile.annualLeaveAllowance)} icon={Calendar} color="info" />
             <StatTile label="Leaves Used" value={String(profile.leavesUsed)} icon={CalendarOff} color="warning" />
             <StatTile label="Leaves Remaining" value={String(profile.leavesRemaining)} icon={CheckCircle} color="success" />
             <StatTile label={`WFH (${currentMonthName.substring(0, 3)})`} value={String(profile.wfhTakenThisMonth)} icon={Home} color="accent" />
@@ -242,8 +242,8 @@ export default function Profile() {
             <div className="text-sm text-card-foreground">
               <p className="font-semibold">Leave & Attendance Policy</p>
               <ul className="mt-1.5 text-muted-foreground leading-relaxed space-y-1">
-                <li>12 casual leaves per year — no salary deduction until exhausted</li>
-                <li>Leaves beyond 12 per year: full day salary deducted</li>
+                <li>1 leave accrued per month (Jan=1, Feb=2, ..., Dec=12)</li>
+                <li>Leaves beyond accrued balance: full day salary deducted</li>
                 <li>1 free WFH per month. Additional WFH: 25% daily salary deducted</li>
                 <li>Client holiday leaves: no deduction (requires manager approval)</li>
                 <li>Working 9+ hours = Present. 5–9 hours = Half Day. Less than 5 = Absent</li>

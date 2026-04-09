@@ -80,8 +80,8 @@ export default function LeaveApply() {
             <CheckCircle2 className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-card-foreground">12 Leaves / Year</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Annual casual leave allowance</p>
+            <p className="text-sm font-semibold text-card-foreground">1 Leave / Month</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Accrues monthly (Jan=1, Apr=4)</p>
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 shadow-card flex items-start gap-3">
