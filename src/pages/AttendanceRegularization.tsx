@@ -87,7 +87,7 @@ export default function AttendanceRegularization() {
           </div>
           <div>
             <p className="text-sm font-semibold text-card-foreground">Past Dates Only</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Max 2 requests per month</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Max 6 requests per month</p>
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 shadow-card flex items-start gap-3">

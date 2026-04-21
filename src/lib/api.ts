@@ -63,8 +63,8 @@ export interface MyProfile {
   leavesThisYear: number;
   wfhThisYear: number;
   annualLeaveAllowance: number;
-  leavesUsed: number;
-  leavesRemaining: number;
+  leavesUsed: number;     // can be fractional (half-day = 0.5)
+  leavesRemaining: number; // can be fractional
   projectName: string | null;
   // Director-only
   totalActiveEmployees: number | null;
@@ -231,6 +231,7 @@ export interface RegularizationResponse {
   createdAt: string;
   actionedAt: string | null;
   managerComment: string | null;
+  monthlyRequestNumber: number | null;
 }
 
 export interface PasskeyRegistrationOptionsResponse {

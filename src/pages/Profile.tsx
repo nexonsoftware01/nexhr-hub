@@ -222,8 +222,8 @@ export default function Profile() {
 
           <motion.div variants={item} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatTile label="Accrued Leaves" value={String(profile.annualLeaveAllowance)} icon={Calendar} color="info" />
-            <StatTile label="Leaves Used" value={String(profile.leavesUsed)} icon={CalendarOff} color="warning" />
-            <StatTile label="Leaves Remaining" value={String(profile.leavesRemaining)} icon={CheckCircle} color="success" />
+            <StatTile label="Leaves Used" value={Number(profile.leavesUsed) % 1 === 0 ? String(profile.leavesUsed) : profile.leavesUsed.toFixed(1)} icon={CalendarOff} color="warning" />
+            <StatTile label="Leaves Remaining" value={Number(profile.leavesRemaining) % 1 === 0 ? String(profile.leavesRemaining) : profile.leavesRemaining.toFixed(1)} icon={CheckCircle} color="success" />
             <StatTile label={`WFH (${currentMonthName.substring(0, 3)})`} value={String(profile.wfhTakenThisMonth)} icon={Home} color="accent" />
           </motion.div>
 

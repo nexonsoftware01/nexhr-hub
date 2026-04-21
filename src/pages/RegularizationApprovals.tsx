@@ -8,6 +8,13 @@ import { handleApiError } from '@/lib/api-error';
 import { ClipboardCheck, Loader2, CheckCircle, XCircle, Clock, User, Mail, FileEdit, AlertTriangle, Globe, CalendarOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+function ordinal(n: number): string {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  const suffixes = ['th', 'st', 'nd', 'rd'];
+  return `${n}${suffixes[n % 10] || 'th'}`;
+}
+
 export default function RegularizationApprovals() {
   const [requests, setRequests] = useState<RegularizationResponse[]>([]);
   const [clientLeaves, setClientLeaves] = useState<LeaveResponse[]>([]);
@@ -129,7 +136,17 @@ export default function RegularizationApprovals() {
                       {req.employeeName?.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-semibold text-card-foreground">{req.employeeName}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-card-foreground">{req.employeeName}</p>
+                        {req.monthlyRequestNumber != null && (
+                          <span
+                            className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20"
+                            title={`This is the ${ordinal(req.monthlyRequestNumber)} correction request from ${req.employeeName ?? 'this employee'} this month`}
+                          >
+                            {ordinal(req.monthlyRequestNumber)} of month
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
                         <Mail className="h-3 w-3" />{req.employeeEmail}
                       </p>
