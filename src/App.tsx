@@ -21,6 +21,8 @@ import Profile from "./pages/Profile";
 import AttendanceRegularization from "./pages/AttendanceRegularization";
 import RegularizationApprovals from "./pages/RegularizationApprovals";
 import RequestHistory from "./pages/RequestHistory";
+import MyReviews from "./pages/MyReviews";
+import TeamReviews from "./pages/TeamReviews";
 import Announcements from "./pages/Announcements";
 import Holidays from "./pages/Holidays";
 import DeviceChange from "./pages/DeviceChange";
@@ -59,6 +61,8 @@ const App = () => (
               <Route path="/attendance/regularization/approvals" element={<RegularizationApprovals />} />
               <Route path="/device-change" element={<DeviceChange />} />
               <Route path="/team-calendar" element={<TeamCalendar />} />
+              <Route path="/reviews/my" element={<MyReviews />} />
+              <Route path="/reviews/team" element={<TeamReviews />} />
               <Route path="/requests/history" element={<RequestHistory />} />
               <Route path="/announcements" element={<Announcements />} />
               <Route path="/holidays" element={<Holidays />} />

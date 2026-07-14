@@ -22,6 +22,8 @@ import {
   CalendarDays,
   CalendarRange,
   Smartphone,
+  Star,
+  Award,
 } from 'lucide-react';
 
 interface AppSidebarProps {
@@ -48,6 +50,8 @@ const navItems: NavItem[] = [
   { title: 'Apply Leave', to: '/leave/apply', icon: CalendarOff, excludeRoles: ['DIRECTOR'] },
   { title: 'Attendance Correction', to: '/attendance/regularization', icon: FileEdit, end: true, excludeRoles: ['DIRECTOR'] },
   { title: 'Correction Approvals', to: '/attendance/regularization/approvals', icon: ClipboardCheck, requiresTeam: true },
+  { title: 'My Reviews', to: '/reviews/my', icon: Star, excludeRoles: ['DIRECTOR'] },
+  { title: 'Team Reviews', to: '/reviews/team', icon: Award, requiresTeam: true },
   { title: 'Device Management', to: '/device-change', icon: Smartphone },
   { title: 'Team Calendar', to: '/team-calendar', icon: CalendarRange, requiresTeam: true },
   { title: 'Holidays', to: '/holidays', icon: CalendarDays },

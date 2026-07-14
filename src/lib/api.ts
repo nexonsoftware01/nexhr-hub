@@ -568,6 +568,42 @@ export const announcementApi = {
     apiRequest('/api/announcements/' + id, { method: 'DELETE' }),
 };
 
+export interface ReviewResponse {
+  id: number;
+  employeeId: number;
+  employeeName: string;
+  managerId: number;
+  managerName: string;
+  year: number;
+  month: number;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface TeamReviewRow {
+  employeeId: number;
+  employeeName: string;
+  email: string;
+  projectName: string | null;
+  reviewed: boolean;
+  rating: number | null;
+  comment: string | null;
+  reviewedAt: string | null;
+}
+
+export const reviewApi = {
+  submit: (data: { employeeId: number; year: number; month: number; rating: number; comment?: string }) =>
+    apiRequest<ReviewResponse>('/api/reviews', { method: 'POST', body: JSON.stringify(data) }),
+  my: () =>
+    apiRequest<ReviewResponse[]>('/api/reviews/my'),
+  team: (year: number, month: number) =>
+    apiRequest<TeamReviewRow[]>(`/api/reviews/team?year=${year}&month=${month}`),
+  employee: (employeeId: number) =>
+    apiRequest<ReviewResponse[]>(`/api/reviews/employee/${employeeId}`),
+};
+
 export const payrollApi = USE_MOCK ? {
   download: async (year: number, month: number) => {
     const { delay: mockDelay } = await getMocks();
