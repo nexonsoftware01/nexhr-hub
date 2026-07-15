@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { StatusChip } from '@/components/StatusChip';
-import { regularizationApi, RegularizationResponse } from '@/lib/api';
+import { regularizationApi, RegularizationResponse, CorrectableInfoResponse } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/api-error';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,8 @@ export default function AttendanceRegularization() {
   const [punchOut, setPunchOut] = useState('');
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
+  const [correctInfo, setCorrectInfo] = useState<CorrectableInfoResponse | null>(null);
+  const [checking, setChecking] = useState(false);
   const [result, setResult] = useState<RegularizationResponse | null>(null);
   const [history, setHistory] = useState<RegularizationResponse[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
@@ -35,24 +37,43 @@ export default function AttendanceRegularization() {
 
   useEffect(() => { fetchHistory(); }, []);
 
+  // When a date is picked, ask the backend which single punch (if any) can be corrected.
+  const handleDateSelect = (d?: Date) => {
+    setDate(d);
+    setCalendarOpen(false);
+    setPunchIn(''); setPunchOut(''); setCorrectInfo(null); setResult(null);
+    if (!d) return;
+
+    const dateStr = format(d, 'yyyy-MM-dd');
+    setChecking(true);
+    regularizationApi.correctable(dateStr)
+      .then(res => setCorrectInfo(res.data))
+      .catch(err => handleApiError(err, { title: 'Could not load attendance for that date' }))
+      .finally(() => setChecking(false));
+  };
+
+  const field = correctInfo?.correctableField ?? null;
+  const fieldTime = field === 'PUNCH_IN' ? punchIn : field === 'PUNCH_OUT' ? punchOut : '';
+  const canSubmit = !!date && !!reason.trim() && !!correctInfo?.correctable && !!fieldTime;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!date || !punchIn || !punchOut || !reason.trim()) return;
+    if (!date || !canSubmit || !field) return;
 
     const dateStr = format(date, 'yyyy-MM-dd');
+    const timeIso = `${dateStr}T${fieldTime}:00`;
 
     setLoading(true);
     setResult(null);
     try {
       const res = await regularizationApi.apply({
         date: dateStr,
-        punchIn: `${dateStr}T${punchIn}:00`,
-        punchOut: `${dateStr}T${punchOut}:00`,
         reason: reason.trim(),
+        ...(field === 'PUNCH_IN' ? { punchIn: timeIso } : { punchOut: timeIso }),
       });
       setResult(res.data);
       toast({ title: 'Request Submitted', description: 'Your correction request has been sent to your manager.' });
-      setDate(undefined); setPunchIn(''); setPunchOut(''); setReason('');
+      setDate(undefined); setPunchIn(''); setPunchOut(''); setReason(''); setCorrectInfo(null);
       fetchHistory();
     } catch (err: any) {
       handleApiError(err, { title: 'Correction Request Failed' });
@@ -126,7 +147,7 @@ export default function AttendanceRegularization() {
         <div className="flex items-start gap-3 rounded-xl border border-info/20 bg-info/5 p-3">
           <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Enter the times you actually started and finished work. For example, if you forgot to punch out but left at 6:30 PM, enter your actual punch-in time and 18:30 as punch-out.
+            Pick a date and we'll show the one punch that's missing. You only correct that single time — for example, if you punched in but forgot to punch out, just enter your actual end time.
           </p>
         </div>
 
@@ -143,7 +164,7 @@ export default function AttendanceRegularization() {
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={(d) => { setDate(d); setCalendarOpen(false); }}
+                onSelect={handleDateSelect}
                 disabled={d => d >= new Date(new Date().setHours(0, 0, 0, 0)) || d.getDay() === 0 || d.getDay() === 6}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
@@ -152,28 +173,41 @@ export default function AttendanceRegularization() {
           </Popover>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        {/* Correctable field — determined by the backend from the day's record */}
+        {date && (
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Actual start time</label>
-            <Input
-              type="time"
-              value={punchIn}
-              onChange={e => setPunchIn(e.target.value)}
-              required
-              className="rounded-xl h-12"
-            />
+            {checking ? (
+              <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Checking attendance for this date…
+              </div>
+            ) : correctInfo && correctInfo.correctable ? (
+              <>
+                <div className="rounded-xl border border-border bg-muted/30 p-3 text-xs text-muted-foreground leading-relaxed">
+                  {field === 'PUNCH_OUT' ? (
+                    <>Punch-in on record: <span className="font-semibold text-card-foreground">{correctInfo.existingPunchIn?.substring(11, 16)}</span>. Enter your actual end time below.</>
+                  ) : (
+                    <>Punch-out on record: <span className="font-semibold text-card-foreground">{correctInfo.existingPunchOut?.substring(11, 16)}</span>. Enter your actual start time below.</>
+                  )}
+                </div>
+                <label className="text-sm font-medium text-foreground">
+                  {field === 'PUNCH_IN' ? 'Actual start time (punch-in)' : 'Actual end time (punch-out)'}
+                </label>
+                <Input
+                  type="time"
+                  value={fieldTime}
+                  onChange={e => field === 'PUNCH_IN' ? setPunchIn(e.target.value) : setPunchOut(e.target.value)}
+                  required
+                  className="rounded-xl h-12"
+                />
+              </>
+            ) : correctInfo ? (
+              <div className="flex items-start gap-3 rounded-xl border border-warning/20 bg-warning/5 p-3">
+                <Info className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-foreground leading-relaxed">{correctInfo.message}</p>
+              </div>
+            ) : null}
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Actual end time</label>
-            <Input
-              type="time"
-              value={punchOut}
-              onChange={e => setPunchOut(e.target.value)}
-              required
-              className="rounded-xl h-12"
-            />
-          </div>
-        </div>
+        )}
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Reason for correction</label>
@@ -187,7 +221,7 @@ export default function AttendanceRegularization() {
           />
         </div>
 
-        <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={loading || !date || !punchIn || !punchOut || !reason.trim()}>
+        <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={loading || !canSubmit}>
           {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Send className="h-5 w-5 mr-2" />}
           Submit Correction Request
         </Button>

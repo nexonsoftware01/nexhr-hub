@@ -234,6 +234,16 @@ export interface RegularizationResponse {
   monthlyRequestNumber: number | null;
 }
 
+export interface CorrectableInfoResponse {
+  date: string;
+  correctable: boolean;
+  correctableField: 'PUNCH_IN' | 'PUNCH_OUT' | null;
+  existingPunchIn: string | null;
+  existingPunchOut: string | null;
+  originalStatus: string | null;
+  message: string;
+}
+
 export interface PasskeyRegistrationOptionsResponse {
   challenge: string;
   rpId: string;
@@ -372,8 +382,10 @@ export const companyWfhApi = {
 };
 
 export const regularizationApi = {
-  apply: (data: { date: string; punchIn: string; punchOut: string; reason: string }) =>
+  apply: (data: { date: string; punchIn?: string; punchOut?: string; reason: string }) =>
     apiRequest<RegularizationResponse>('/api/regularization/apply', { method: 'POST', body: JSON.stringify(data) }),
+  correctable: (date: string) =>
+    apiRequest<CorrectableInfoResponse>('/api/regularization/correctable?date=' + encodeURIComponent(date)),
   myRequests: () =>
     apiRequest<RegularizationResponse[]>('/api/regularization/my-requests'),
   pending: () =>
